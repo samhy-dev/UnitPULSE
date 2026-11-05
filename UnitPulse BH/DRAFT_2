@@ -1,0 +1,195 @@
+import SwiftUI
+import FirebaseCore
+
+@main
+struct UnitPulseBHApp: App {
+    
+    init() {
+        FirebaseApp.configure()   // connects the app to Firebase
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+
+
+import Foundation
+import Combine
+import FirebaseAuth
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    func signUp(email: String, password: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(email: String, password: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+}
+
+
+// Log In button
+Button {
+    auth.login(email: username, password: password) { success in
+        if success {
+            withAnimation {
+                isLoggedIn = true
+            }
+        } else {
+            alertMessage = auth.errorMessage ?? "Login failed."
+            showAlert = true
+        }
+    }
+} label: {
+    // same label as before
+}
+
+// Forgot Password, now it really sends a reset link
+Button("Forgot Password?") {
+    auth.resetPassword(email: username) { success in
+        alertMessage = success ? "Reset link sent to your email." : (auth.errorMessage ?? "Enter your email first.")
+        showAlert = true
+    }
+    
+}
+
+Button("Sign Up") {
+    if password != confirmPassword {
+        auth.errorMessage = "Passwords do not match."
+        showAlert = true
+    } else {
+        auth.signUp(email: username, password: password) { success in
+            if success {
+                isPresented = false
+            } else {
+                showAlert = true
+            }
+        }
+    }
+}
+
+import Foundation
+import FirebaseFirestore
+
+struct Tenant: Identifiable, Codable {
+    @DocumentID var id: String?
+    var name: String
+    var email: String
+    var room: String
+    var rate: Double
+    var rateType: String
+    var isActive: Bool
+    var sinceDate: String
+}
+
+import Foundation
+import FirebaseFirestore
+
+struct Room: Identifiable, Codable {
+    @DocumentID var id: String?
+    var name: String
+}
+
+import Foundation
+import Combine
+import FirebaseFirestore
+
+class TenantController: ObservableObject {
+    
+    @Published var tenants: [Tenant] = []
+    @Published var rooms: [Room] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    
+    init() {
+        // these listen to Firestore, so the lists update by themselves
+        db.collection("tenants").addSnapshotListener { snapshot, error in
+            let docs = snapshot?.documents ?? []
+            self.tenants = docs.compactMap { try? $0.data(as: Tenant.self) }
+        }
+        
+        db.collection("rooms").addSnapshotListener { snapshot, error in
+            let docs = snapshot?.documents ?? []
+            self.rooms = docs.compactMap { try? $0.data(as: Room.self) }
+        }
+    }
+    
+    func addTenant(name: String, email: String, room: String, rate: Double, rateType: String) {
+        let newTenant = Tenant(name: name, email: email, room: room, rate: rate, rateType: rateType, isActive: true, sinceDate: "Sep 2026")
+        try? db.collection("tenants").addDocument(from: newTenant)
+    }
+    
+    func deleteTenant(_ tenant: Tenant) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).delete()
+    }
+    
+    func updateTenant(_ tenant: Tenant, name: String, email: String, room: String, rate: Double, rateType: String) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).updateData([
+            "name": name,
+            "email": email,
+            "room": room,
+            "rate": rate,
+            "rateType": rateType
+        ])
+    }
+    
+    func addRoom(name: String) {
+        if name.isEmpty {
+            errorMessage = "Room name cannot be empty."
+            return
+        }
+        
+        if rooms.contains(where: { $0.name == name }) {
+            errorMessage = "Room already exists."
+            return
+        }
+        
+        try? db.collection("rooms").addDocument(from: Room(name: name))
+    }
+    
+    func deleteRoom(_ room: Room) {
+        let isInUse = tenants.contains { $0.room == room.name }
+        
+        if isInUse {
+            errorMessage = "Cannot delete this room, a tenant is still using it."
+            return
+        }
+        
+        guard let id = room.id else { return }
+        db.collection("rooms").document(id).delete()
+    }
+}
