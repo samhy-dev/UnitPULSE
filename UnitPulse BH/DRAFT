@@ -1,0 +1,383 @@
+import Foundation
+import Combine
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    // create account: saves the username and password in the phone
+    func signUp(username: String, password: String) -> Bool {
+        if username.isEmpty || password.isEmpty {
+            errorMessage = "Please fill in all fields."
+            return false
+        }
+        
+        UserDefaults.standard.set(username, forKey: "savedUsername")
+        UserDefaults.standard.set(password, forKey: "savedPassword")
+        return true
+    }
+    
+    // log in: checks what the user typed against the saved account
+    func login(username: String, password: String) -> Bool {
+        if username.isEmpty || password.isEmpty {
+            errorMessage = "Please enter your username and password."
+            return false
+        }
+        
+        let savedUsername = UserDefaults.standard.string(forKey: "savedUsername")
+        let savedPassword = UserDefaults.standard.string(forKey: "savedPassword")
+        
+        if savedUsername == nil {
+            errorMessage = "No account yet. Please sign up first."
+            return false
+        }
+        
+        if username == savedUsername && password == savedPassword {
+            return true
+        }
+        
+        errorMessage = "Incorrect username or password."
+        return false
+    }
+}
+
+
+
+
+import SwiftUI
+
+struct LoginView: View {
+    
+    @Binding var isLoggedIn: Bool
+    @StateObject var auth = AuthController()
+    
+    @State private var username = ""
+    @State private var password = ""
+    @State private var showPassword = false
+    @State private var showSignUp = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var body: some View {
+        ZStack {
+            
+            LinearGradient(
+                colors: [Color(white: 0.88), Color(white: 0.3)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                
+                Spacer()
+                
+                // logo on top
+                Image("AppLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .background(Color(white: 0.2))
+                    .clipShape(Circle())
+                
+                // side shapes behind the card
+                ZStack {
+                    HStack {
+                        RoundedRectangle(cornerRadius: 50)
+                            .fill(Color(white: 0.6).opacity(0.6))
+                            .frame(width: 90, height: 250)
+                        
+                        Spacer()
+                        
+                        RoundedRectangle(cornerRadius: 50)
+                            .fill(Color(white: 0.6).opacity(0.6))
+                            .frame(width: 90, height: 250)
+                    }
+                    .padding(.horizontal, -45)
+                    
+                    // login card
+                    VStack(alignment: .leading, spacing: 6) {
+                        
+                        Text("EMAIL OR USERNAME")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(Color(white: 0.2))
+                        
+                        HStack(spacing: 10) {
+                            Image(systemName: "envelope")
+                                .foregroundColor(.black)
+                            TextField("username@domain.com", text: $username)
+                                .font(.system(size: 12))
+                                .foregroundColor(.black)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(Color(white: 0.87))
+                        .clipShape(Capsule())
+                        
+                        Text("PASSWORD")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(Color(white: 0.2))
+                            .padding(.top, 4)
+                        
+                        HStack(spacing: 10) {
+                            Image(systemName: "lock")
+                                .foregroundColor(.black)
+                            
+                            // eye button shows or hides the password
+                            if showPassword {
+                                TextField("Password", text: $password)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.black)
+                                    .autocapitalization(.none)
+                            } else {
+                                SecureField("Password", text: $password)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.black)
+                            }
+                            
+                            Button {
+                                showPassword.toggle()
+                            } label: {
+                                Image(systemName: showPassword ? "eye.slash" : "eye")
+                                    .foregroundColor(.black)
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(Color(white: 0.87))
+                        .clipShape(Capsule())
+                        
+                        Button("Forgot Password?") {
+                            alertMessage = "Password reset will be added later with Firebase."
+                            showAlert = true
+                        }
+                        .font(.system(size: 9))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        
+                        HStack(spacing: 6) {
+                            
+                            // the real Log In button
+                            Button {
+                                if auth.login(username: username, password: password) {
+                                    withAnimation {
+                                        isLoggedIn = true
+                                    }
+                                } else {
+                                    alertMessage = auth.errorMessage ?? "Login failed."
+                                    showAlert = true
+                                }
+                            } label: {
+                                Text("Log In")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 90, height: 44)
+                                    .background(Color(red: 0.12, green: 0.13, blue: 0.17))
+                                    .cornerRadius(16)
+                            }
+                            
+                            Text("or")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.black)
+                            
+                            Button {
+                                alertMessage = "Google sign-in will be added later with Firebase."
+                                showAlert = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image("GoogleLogo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 14, height: 14)
+                                    Text("Continue with Google")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(Color(white: 0.65))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                )
+                                .cornerRadius(16)
+                            }
+                        }
+                        .padding(.top, 6)
+                        
+                        HStack(spacing: 4) {
+                            Text("Don't have an account?")
+                                .font(.system(size: 9))
+                            
+                            Button {
+                                showSignUp = true
+                            } label: {
+                                Text("Sign Up")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .underline()
+                            }
+                        }
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 2)
+                        
+                    }
+                    .padding(16)
+                    .background(Color(white: 0.55))
+                    .cornerRadius(24)
+                    .shadow(radius: 6)
+                    .padding(.horizontal, 56)
+                }
+                
+                Spacer()
+                
+                // UnitPULSE card at the bottom
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Image(systemName: "house.fill")
+                            .font(.system(size: 14))
+                        Spacer()
+                        Text("Boarding House")
+                            .font(.system(size: 11))
+                    }
+                    Text("UnitPULSE")
+                        .font(.system(size: 32, weight: .bold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 18)
+                .background(Color(white: 0.55))
+                .cornerRadius(30)
+                .shadow(radius: 6)
+                .padding(.horizontal, 60)
+                .padding(.bottom, 30)
+                
+            }
+        }
+        .alert("Notice", isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+            }
+        } message: {
+            Text(alertMessage)
+        }
+        .sheet(isPresented: $showSignUp) {
+            SignUpSheet(auth: auth, isPresented: $showSignUp)
+        }
+    }
+}
+
+#Preview {
+    LoginView(isLoggedIn: .constant(false))
+}
+
+
+
+import SwiftUI
+
+struct SignUpSheet: View {
+    
+    @ObservedObject var auth: AuthController
+    @Binding var isPresented: Bool
+    
+    @State private var username = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var showAlert = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Create Account")
+                .font(.headline)
+            
+            TextField("Email or Username", text: $username)
+                .textFieldStyle(.roundedBorder)
+                .autocapitalization(.none)
+            
+            SecureField("Password", text: $password)
+                .textFieldStyle(.roundedBorder)
+            
+            SecureField("Confirm Password", text: $confirmPassword)
+                .textFieldStyle(.roundedBorder)
+            
+            Button("Sign Up") {
+                // passwords must match before saving
+                if password != confirmPassword {
+                    auth.errorMessage = "Passwords do not match."
+                    showAlert = true
+                } else if auth.signUp(username: username, password: password) {
+                    isPresented = false
+                } else {
+                    showAlert = true
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.black)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            
+            Spacer()
+        }
+        .padding()
+        .alert("Error", isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+            }
+        } message: {
+            Text(auth.errorMessage ?? "")
+        }
+    }
+}
+
+
+import SwiftUI
+
+struct ContentView: View {
+    
+    @StateObject var tenantController = TenantController()
+    @StateObject var paymentController = PaymentController()
+    @State private var isLoggedIn = false
+    
+    var body: some View {
+        if !isLoggedIn {
+            LoginView(isLoggedIn: $isLoggedIn)
+        } else {
+            TabView {
+                
+                DashboardView(tenantController: tenantController, paymentController: paymentController)
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                        Text("Home")
+                    }
+                
+                TenantView(controller: tenantController)
+                    .tabItem {
+                        Image(systemName: "person.2.fill")
+                        Text("Tenant")
+                    }
+                
+                PaymentView(controller: paymentController, tenantController: tenantController)
+                    .tabItem {
+                        Image(systemName: "creditcard.fill")
+                        Text("Payment")
+                    }
+                
+                InboxView(tenantController: tenantController)
+                    .tabItem {
+                        Image(systemName: "envelope.fill")
+                        Text("Inbox")
+                    }
+                
+            }
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
