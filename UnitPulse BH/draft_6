@@ -1,0 +1,63 @@
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x114803840 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x114130800.bottom == _UIKBCompatInputView:0x112f94000.top - 17   (active)>",
+    "<NSLayoutConstraint:0x1148023f0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114130800]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1148023f0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114130800]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x114803840 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x114130800.bottom == _UIKBCompatInputView:0x112f94000.top - 17   (active)>",
+    "<NSLayoutConstraint:0x114251450 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114130800]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x114251450 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114130800]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x114803840 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x114130800.bottom == _UIKBCompatInputView:0x112f94000.top - 17   (active)>",
+    "<NSLayoutConstraint:0x114251540 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114130800]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x114251540 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114130800]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x114250140 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x114132000.bottom == _UIKBCompatInputView:0x112f94000.top - 17   (active)>",
+    "<NSLayoutConstraint:0x114251540 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114132000]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x114251540 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x114132000]-(0)-[_UIKBCompatInputView:0x112f94000]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Could not find cached accumulator for token=BF9131C1 type:0 in -[TUIKeyboardCandidateMultiplexer receiveExternalAutocorrectionUpdate:requestToken:]_block_invoke
+Could not find cached accumulator for token=BF9131C1 type:1 in -[TUIKeyboardCandidateMultiplexer _queueOnly_willHandleDeliveryForCandidates:requestToken:]
