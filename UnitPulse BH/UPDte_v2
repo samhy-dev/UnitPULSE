@@ -1,0 +1,96 @@
+import Foundation
+import Combine
+import FirebaseAuth
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    // username -> email na tatanggapin ng Firebase
+    private func toEmail(_ input: String) -> String {
+        let clean = input.trimmingCharacters(in: .whitespaces).lowercased()
+        return clean.contains("@") ? clean : "\(clean)@unitpulse.app"
+    }
+    
+    // letters, numbers, underscore, period lang. 3-20 characters
+    func isValidUsername(_ input: String) -> Bool {
+        if input.contains("@") { return true }   // totoong email, pasado
+        let pattern = "^[A-Za-z0-9._]{3,20}$"
+        return input.range(of: pattern, options: .regularExpression) != nil
+    }
+    
+    func signUp(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("SIGNUP trying email:", email)
+        
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("SIGNUP", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("LOGIN trying email:", email)
+        
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("LOGIN", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // Gumagana lang kung totoong email ang gamit ng account
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        guard email.contains("@") else {
+            errorMessage = "Password reset needs a real email address. Usernames can't receive reset links."
+            completion(false)
+            return
+        }
+        
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.logError("RESET", error)
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func logout() {
+        try? Auth.auth().signOut()
+    }
+    
+    // PRINT ang buong error sa Xcode console
+    private func logError(_ label: String, _ error: Error) {
+        let nsError = error as NSError
+        print("\(label) AUTH ERROR:", error)
+        print("\(label) CODE:", nsError.code)
+        print("\(label) DOMAIN:", nsError.domain)
+        print("\(label) USERINFO:", nsError.userInfo)
+    }
+    
+    // mas madaling intindihing error messages
+    private func friendly(_ error: Error) -> String {
+        let nsError = error as NSError
+        switch nsError.code {
+        case 17007: return "That username is already taken."
+        case 17009, 17004, 17011: return "Incorrect username or password."
+        case 17026: return "Password must be at least 6 characters."
+        case 17020: return "No internet connection."
+        case 17999: return "Internal error (code 17999). Check Xcode console for details."
+        default: return error.localizedDescription
+        }
+    }
+}
