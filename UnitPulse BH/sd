@@ -1,0 +1,365 @@
+//
+//  PaymentController.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import Foundation
+import Combine
+
+class PaymentController: ObservableObject {
+    
+    @Published var payments: [Payment] = []
+    
+    func recordPayment(tenantName: String, dueDate: String, mode: String, amount: Double, status: String) {
+        let newPayment = Payment(tenantName: tenantName, dueDate: dueDate, modeOfPayment: mode, amount: amount, status: status)
+        payments.append(newPayment)
+    }
+    
+}
+//
+//  PaymentView.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import SwiftUI
+
+struct PaymentView: View {
+    
+    @ObservedObject var controller = PaymentController()
+    @ObservedObject var tenantController: TenantController
+    @State private var showRecordForm = false
+    @State private var selectedFilter = "All"
+    
+    let filters = ["All", "Pending", "Paid", "Overdue"]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            
+            VStack(alignment: .center, spacing: 8) {
+                HStack {
+                    Spacer()
+                }
+                
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Boarding House")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                    Text("UnitPULSE")
+                        .font(.system(size: 28, weight: .bold))
+                }
+                
+                HStack(spacing: 8) {
+                     Text("PAYMENTS")
+                         .font(.caption)
+                         .fontWeight(.semibold)
+                         .fixedSize()
+                     
+                     Rectangle()
+                         .frame(height: 2)
+                         .foregroundColor(.black)
+                 }
+             }
+             .padding(.horizontal)
+            
+            Button {
+                showRecordForm = true
+            } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Record Payment")
+                            .fontWeight(.semibold)
+                    }
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+            .padding(.horizontal)
+            
+            HStack {
+                ForEach(filters, id: \.self) { filter in
+                    Button {
+                        selectedFilter = filter
+                    } label: {
+                        Text(filter)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(selectedFilter == filter ? Color.black : Color(.white))
+                            .foregroundColor(selectedFilter == filter ? .white : .black)
+                            .cornerRadius(16)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            
+            ScrollView {
+                VStack(spacing: 12) {
+                    if controller.payments.isEmpty {
+                        Text("No payments recorded yet")
+                            .foregroundColor(.black)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(controller.payments) { payment in
+                            if selectedFilter == "All" || payment.status == selectedFilter {
+                                PaymentRowView(payment: payment)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .padding(.top)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray3), Color(.systemGray6), Color(.systemGray2)],
+                    startPoint: .top,
+                    endPoint: . bottom
+            )
+            )
+        .sheet(isPresented: $showRecordForm) {
+            RecordPaymentSheet(controller: controller, tenantController: tenantController, isPresented: $showRecordForm)
+        }
+    }
+}
+
+#Preview {
+    PaymentView(controller: PaymentController(), tenantController: TenantController())
+}
+
+//
+//  Payment.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import Foundation
+
+struct Payment: Identifiable {
+    let id = UUID()
+    var tenantName: String
+    var dueDate: String
+    var modeOfPayment: String
+    var amount: Double
+    var status: String
+}
+
+//
+//  DashboardView.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/3/26.
+//
+
+
+import SwiftUI
+
+struct DashboardView: View {
+    
+    @ObservedObject var tenantController: TenantController
+    @ObservedObject var paymentController: PaymentController
+    
+    var totalCollected: Double {
+        paymentController.payments
+            .filter { $0.status == "Paid" }
+            .reduce(0) { $0 + $1.amount }
+    }
+    
+    var overduePayments: [Payment] {
+        paymentController.payments.filter { $0.status == "Overdue" }
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Boarding House")
+                            .font(.caption)
+                            .foregroundColor(.black)
+                        Text("UnitPULSE")
+                            .font(.system(size: 28, weight: .bold))
+                    }
+                    
+                    HStack {
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.black)
+                        Text("DASHBOARD")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .fixedSize()
+                    }
+                }
+                .padding(.horizontal)
+                
+                // Room Status + stat cards
+                HStack(alignment: .top, spacing: 12) {
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("ROOM STATUS")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        
+                        if tenantController.rooms.isEmpty {
+                            Spacer()
+                            Text("No rooms added yet")
+                                .font(.caption)
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            Spacer()
+                        } else {
+                            VStack(spacing: 10) {
+                                ForEach(tenantController.rooms) { room in //room status
+                                    let isOccupied = tenantController.tenants.contains { $0.room == room.name }
+                                    
+                                    HStack {
+                                        Text(room.name)
+                                            .font(.subheadline)
+                                        Spacer()
+                                        Text(isOccupied ? "Occupied" : "Vacant")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(isOccupied ? .red : .gray)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.white))
+                    .cornerRadius(12)
+                    
+                    VStack(spacing: 12) {
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("TOTAL TENANTS")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            HStack {
+                                Text("\(tenantController.tenants.count)")
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: "person.2.fill")
+                            }
+                        }
+                        .padding()
+                        .frame(height: 90)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(.white))
+                        .cornerRadius(12)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("COLLECTED")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            HStack {
+                                Text("₱\(Int(totalCollected))")
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: "dollarsign")
+                            }
+                        }
+                        .padding()
+                        .frame(height: 90)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(.white))
+                        .cornerRadius(12)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("OVERDUE")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            HStack {
+                                Text("\(overduePayments.count)")
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: "exclamationmark.triangle.fill")
+                            }
+                        }
+                        .padding()
+                        .frame(height: 90)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(.white))
+                        .cornerRadius(12)
+                        
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.horizontal)
+                
+                // Upcoming Due (galing na sa totoong overdue payments)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("UPCOMING DUE")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    
+                    if overduePayments.isEmpty {
+                        Text("No upcoming dues yet")
+                            .font(.caption)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                    } else {
+                        VStack(spacing: 12) {
+                            ForEach(overduePayments) { payment in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(payment.tenantName)
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                        Text("Due \(payment.dueDate)")
+                                            .font(.caption2)
+                                            .foregroundColor(.gray)
+                                    }
+                                    Spacer()
+                                    Text("₱\(Int(payment.amount))")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                }
+                                .padding()
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.red.opacity(0.6), lineWidth: 1)
+                                )
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                
+            }
+            .padding(.vertical)
+        }
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray3), Color(.systemGray6), Color(.systemGray)],
+                    startPoint: .top,
+                    endPoint: . bottom
+            )
+    )
+    }
+}
+
+#Preview {
+    DashboardView(tenantController: TenantController(), paymentController: PaymentController())
+}
+
