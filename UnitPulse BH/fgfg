@@ -1,0 +1,132 @@
+//
+//  TenantController.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import Combine
+import FirebaseFirestore
+
+class TenantController: ObservableObject {
+    
+    @Published var tenants: [Tenant] = []
+    @Published var rooms: [Room] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    
+    init() {
+        // these listen to Firestore, so the lists update by themselves
+        db.collection("tenants").addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("TENANTS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Tenant] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Tenant.self)
+                } catch {
+                    print("TENANT DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self.tenants = result }
+        }
+        
+        db.collection("rooms").addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("ROOMS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Room] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Room.self)
+                } catch {
+                    print("ROOM DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self.rooms = result }
+        }
+    }
+    
+    func addTenant(name: String, email: String, room: String, rate: Double, rateType: String) {
+        let newTenant = Tenant(name: name, email: email, room: room, rate: rate, rateType: rateType, isActive: true, sinceDate: "Sep 2026")
+        do {
+            try db.collection("tenants").addDocument(from: newTenant) { error in
+                if let error = error {
+                    print("ADD TENANT ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                }
+            }
+        } catch {
+            print("ADD TENANT ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteTenant(_ tenant: Tenant) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).delete { error in
+            if let error = error { print("DELETE TENANT ERROR:", error) }
+        }
+    }
+    
+    func updateTenant(_ tenant: Tenant, name: String, email: String, room: String, rate: Double, rateType: String) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).updateData([
+            "name": name,
+            "email": email,
+            "room": room,
+            "rate": rate,
+            "rateType": rateType
+        ]) { error in
+            if let error = error { print("UPDATE TENANT ERROR:", error) }
+        }
+    }
+    
+    func addRoom(name: String) {
+        let clean = name.trimmingCharacters(in: .whitespaces)
+        
+        if clean.isEmpty {
+            errorMessage = "Room name cannot be empty."
+            return
+        }
+        
+        if rooms.contains(where: { $0.name.lowercased() == clean.lowercased() }) {
+            errorMessage = "Room already exists."
+            return
+        }
+        
+        print("ADD ROOM:", clean)
+        do {
+            try db.collection("rooms").addDocument(from: Room(name: clean)) { error in
+                if let error = error {
+                    print("ADD ROOM ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                } else {
+                    print("ADD ROOM SAVED")
+                }
+            }
+        } catch {
+            print("ADD ROOM ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteRoom(_ room: Room) {
+        let isInUse = tenants.contains { $0.room == room.name }
+        
+        if isInUse {
+            errorMessage = "Cannot delete this room, a tenant is still using it."
+            return
+        }
+        
+        guard let id = room.id else { return }
+        db.collection("rooms").document(id).delete { error in
+            if let error = error { print("DELETE ROOM ERROR:", error) }
+        }
+    }
+}
