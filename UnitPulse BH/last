@@ -1,0 +1,72 @@
+//
+//  Payment.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import FirebaseFirestore
+
+struct Payment: Identifiable, Codable {
+    @DocumentID var id: String?
+    var tenantName: String
+    var dueDate: String
+    var modeOfPayment: String
+    var amount: Double
+    var status: String
+}
+
+//
+//  PaymentController.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import Combine
+import FirebaseFirestore
+
+class PaymentController: ObservableObject {
+    
+    @Published var payments: [Payment] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    
+    init() {
+        // nakikinig sa Firestore, kaya kusa nang nag-a-update ang list at ang Dashboard
+        db.collection("payments").addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("PAYMENTS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Payment] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Payment.self)
+                } catch {
+                    print("PAYMENT DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self.payments = result }
+        }
+    }
+    
+    func recordPayment(tenantName: String, dueDate: String, mode: String, amount: Double, status: String) {
+        let newPayment = Payment(tenantName: tenantName, dueDate: dueDate, modeOfPayment: mode, amount: amount, status: status)
+        
+        print("RECORD PAYMENT:", tenantName, amount, status)
+        do {
+            try db.collection("payments").addDocument(from: newPayment) { error in
+                if let error = error {
+                    print("RECORD PAYMENT ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                } else {
+                    print("RECORD PAYMENT SAVED")
+                }
+            }
+        } catch {
+            print("RECORD PAYMENT ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+}
