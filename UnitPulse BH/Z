@@ -1,0 +1,252 @@
+//
+//  TenantView.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/4/26.
+//
+
+import SwiftUI
+
+struct TenantView: View {
+    
+    @StateObject var controller = TenantController()
+    @State private var showAddForm = false
+    @State private var showRoomManager = false
+    @State private var tenantToEdit: Tenant? = nil
+    @State private var searchText = ""
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            
+            VStack(alignment: .center, spacing: 8) {
+                HStack {
+                    Spacer()
+                }
+                
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Boarding House")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                    Text("UnitPULSE")
+                        .font(.system(size: 28, weight: .bold))
+                }
+                
+                HStack(spacing: 8) {
+                    Text("TENANTS")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .fixedSize()
+                    
+                    Rectangle()
+                        .frame(height: 2)
+                        .foregroundColor(.black)
+                }
+            }
+            .padding(.horizontal)
+            
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                TextField("Search Name or Room", text: $searchText)
+                    .fontWeight(.semibold)
+            }
+            .padding()
+            .background(Color(.white))
+            .cornerRadius(10)
+            .padding(.horizontal)
+            
+        HStack(spacing: 12) {
+            
+            Button {
+                tenantToEdit = nil
+                showAddForm = true
+            } label: {
+                HStack {
+                    Image(systemName: "person.fill")
+                    Text("Add Tenant")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            
+            Button {
+                showRoomManager = true
+            } label: {
+                HStack {
+                    Image(systemName: "house.fill")
+                    Text("Manage Rooms")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color(.white))
+                .foregroundColor(.black)
+                .cornerRadius(10)
+            }
+        }
+            .padding(.horizontal)
+            
+            ScrollView {
+                VStack(spacing: 12) {
+                    if controller.tenants.isEmpty {
+                        Text("No tenants added yet")
+                            .foregroundColor(.black)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(controller.tenants) { tenant in
+                            if searchText.isEmpty || tenant.name.localizedCaseInsensitiveContains(searchText) || tenant.room.localizedCaseInsensitiveContains(searchText) {
+                                TenantRowView(
+                                    tenant: tenant,
+                                    onEdit: {
+                                        tenantToEdit = tenant
+                                        showAddForm = true
+                                    },
+                                    onDelete: {
+                                        controller.deleteTenant(tenant)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .padding(.top)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray4), Color(.systemGray5), Color(.systemGray2)],
+                    startPoint: .top,
+                    endPoint: . bottom
+            )
+            )
+        .sheet(isPresented: $showAddForm) {
+            AddTenantSheet(controller: controller, isPresented: $showAddForm, editingTenant: tenantToEdit)
+        }
+        .sheet(isPresented: $showRoomManager) {
+            RoomManagementSheet(controller: controller, isPresented: $showRoomManager)
+        }
+    }
+}
+
+#Preview {
+    TenantView()
+}
+//
+//  TenantController.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/4/26.
+//
+
+import Foundation
+import Combine
+import FirebaseFirestore
+
+class TenantController: ObservableObject {
+    
+    @Published var tenants: [Tenant] = []
+    @Published var rooms: [Room] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    
+    init() {
+        // these listen to Firestore, so the lists update by themselves
+        db.collection("tenants").addSnapshotListener { snapshot, error in
+            let docs = snapshot?.documents ?? []
+            self.tenants = docs.compactMap { try? $0.data(as: Tenant.self) }
+        }
+        
+        db.collection("rooms").addSnapshotListener { snapshot, error in
+            let docs = snapshot?.documents ?? []
+            self.rooms = docs.compactMap { try? $0.data(as: Room.self) }
+        }
+    }
+    
+    func addTenant(name: String, email: String, room: String, rate: Double, rateType: String) {
+        let newTenant = Tenant(name: name, email: email, room: room, rate: rate, rateType: rateType, isActive: true, sinceDate: "Sep 2026")
+        _ = try? db.collection("tenants").addDocument(from: newTenant)
+    }
+    
+    func deleteTenant(_ tenant: Tenant) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).delete()
+    }
+    
+    func updateTenant(_ tenant: Tenant, name: String, email: String, room: String, rate: Double, rateType: String) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).updateData([
+            "name": name,
+            "email": email,
+            "room": room,
+            "rate": rate,
+            "rateType": rateType
+        ])
+    }
+    
+    func addRoom(name: String) {
+        if name.isEmpty {
+            errorMessage = "Room name cannot be empty."
+            return
+        }
+        
+        if rooms.contains(where: { $0.name == name }) {
+            errorMessage = "Room already exists."
+            return
+        }
+        
+        _ = try? db.collection("rooms").addDocument(from: Room(name: name))
+    }
+    
+    func deleteRoom(_ room: Room) {
+        let isInUse = tenants.contains { $0.room == room.name }
+        
+        if isInUse {
+            errorMessage = "Cannot delete this room, a tenant is still using it."
+            return
+        }
+        
+        guard let id = room.id else { return }
+        db.collection("rooms").document(id).delete()
+    }
+}
+      //
+//  Room.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import Foundation
+import FirebaseFirestore
+
+struct Room: Identifiable, Codable {
+    @DocumentID var id: String?
+    var name: String
+}
+//
+//  Tenant.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/4/26.
+//
+
+import Foundation
+import FirebaseFirestore
+
+struct Tenant: Identifiable, Codable {
+    @DocumentID var id: String?
+    var name: String
+    var email: String
+    var room: String
+    var rate: Double
+    var rateType: String
+    var isActive: Bool
+    var sinceDate: String
+}
+
