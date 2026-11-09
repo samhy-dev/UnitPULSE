@@ -1,0 +1,275 @@
+SIGNUP trying email: sam_0101@unitpulse.app
+SIGNUP AUTH ERROR: Error Domain=FIRAuthErrorDomain Code=17999 "An internal error has occurred, print and inspect the error details for more information." UserInfo={NSUnderlyingError=0x1188bc030 {Error Domain=FIRAuthInternalErrorDomain Code=3 "(null)" UserInfo={FIRAuthErrorUserInfoDeserializedResponseKey={
+    code = 400;
+    errors =     (
+                {
+            domain = global;
+            message = "CONFIGURATION_NOT_FOUND";
+            reason = invalid;
+        }
+    );
+    message = "CONFIGURATION_NOT_FOUND";
+}, NSUnderlyingError=0x1188bff90 {Error Domain=com.google.HTTPStatus Code=400 "(null)" UserInfo={data={length = 220, bytes = 0x7b0a2020 22657272 6f72223a 207b0a20 ... 5d0a2020 7d0a7d0a }, data_content_type=application/json; charset=UTF-8}}}}, FIRAuthErrorUserInfoNameKey=ERROR_INTERNAL_ERROR, NSLocalizedDescription=An internal error has occurred, print and inspect the error details for more information.}
+SIGNUP CODE: 17999
+SIGNUP DOMAIN: FIRAuthErrorDomain
+SIGNUP USERINFO: ["NSUnderlyingError": Error Domain=FIRAuthInternalErrorDomain Code=3 "(null)" UserInfo={FIRAuthErrorUserInfoDeserializedResponseKey={
+    code = 400;
+    errors =     (
+                {
+            domain = global;
+            message = "CONFIGURATION_NOT_FOUND";
+            reason = invalid;
+        }
+    );
+    message = "CONFIGURATION_NOT_FOUND";
+}, NSUnderlyingError=0x1188bff90 {Error Domain=com.google.HTTPStatus Code=400 "(null)" UserInfo={data={length = 220, bytes = 0x7b0a2020 22657272 6f72223a 207b0a20 ... 5d0a2020 7d0a7d0a }, data_content_type=application/json; charset=UTF-8}}}, "FIRAuthErrorUserInfoNameKey": "ERROR_INTERNAL_ERROR", "NSLocalizedDescription": "An internal error has occurred, print and inspect the error details for more information."]
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b8a530 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118909200.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x118b89ef0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909200]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118b89ef0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909200]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+-[RTIInputSystemClient remoteTextInputSessionWithID:performInputOperation:]  perform input operation requires a valid sessionID. inputModality = Keyboard, inputOperation = <null selector>, customInfoType = UIEmojiSearchOperations
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b3af10 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115b38d50 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+13.1.1 - [FirebaseFirestore][I-FST000001] WatchStream (313034643730633938) Stream error: 'Not found: The database (default) does not exist for project unitpusebh Please visit https://console.cloud.google.com/datastore/setup?project=unitpusebh to add a Cloud Datastore or Cloud Firestore database. '
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118884460 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118909c00.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x115bfcdc0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909c00]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x115bfcdc0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909c00]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118884460 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118909c00.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x1188861c0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909c00]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1188861c0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909c00]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118884460 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118909c00.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x1188845a0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909c00]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1188845a0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118909c00]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x118b8bde0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118b8bde0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x1159fbf70 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1159fbf70 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x1159fb9d0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1159fb9d0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x118b8b250 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118b8b250 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x118b8ba20 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118b8ba20 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+13.1.1 - [FirebaseFirestore][I-FST000001] WatchStream (313034643730633938) Stream error: 'Not found: The database (default) does not exist for project unitpusebh Please visit https://console.cloud.google.com/datastore/setup?project=unitpusebh to add a Cloud Datastore or Cloud Firestore database. '
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x1159fbd90 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x1159fbd90 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x118b88dc0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118b88dc0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+Could not find cached accumulator for token=0E03EC7F type:0 in -[TUIKeyboardCandidateMultiplexer receiveExternalAutocorrectionUpdate:requestToken:]_block_invoke
+Could not find cached accumulator for token=0E03EC7F type:1 in -[TUIKeyboardCandidateMultiplexer _queueOnly_willHandleDeliveryForCandidates:requestToken:]
+Unable to simultaneously satisfy constraints.
+	Probably at least one of the constraints in the following list is one you don't want. 
+	Try this: 
+		(1) look at each constraint and try to figure out which you don't expect; 
+		(2) find the code that added the unwanted constraint or constraints and fix it. 
+(
+    "<NSLayoutConstraint:0x118b88b40 'accessoryView.bottom' _UIRemoteKeyboardPlaceholderView:0x118908000.bottom == _UIKBCompatInputView:0x114f972c0.top - 17   (active)>",
+    "<NSLayoutConstraint:0x118b897c0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>"
+)
+
+Will attempt to recover by breaking constraint 
+<NSLayoutConstraint:0x118b897c0 'inputView.top' V:[_UIRemoteKeyboardPlaceholderView:0x118908000]-(0)-[_UIKBCompatInputView:0x114f972c0]   (active)>
+
+Make a symbolic breakpoint at UIViewAlertForUnsatisfiableConstraints to catch this in the debugger.
+The methods in the UIConstraintBasedLayoutDebugging category on UIView listed in <UIKitCore/UIView.h> may also be helpful.
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115930f90 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+       CHHapticPattern.mm:487   +[CHHapticPattern patternForKey:error:]: Failed to read pattern library data: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+<_UIKBFeedbackGenerator: 0x114f5a100>: Error creating CHHapticPattern: Error Domain=NSCocoaErrorDomain Code=260 "The file “hapticpatternlibrary.plist” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSURL=file:///Library/Audio/Tunings/Generic/Haptics/Library/hapticpatternlibrary.plist, NSUnderlyingError=0x115933b70 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}
+SIGNUP trying email: sam_0101@unitpulse.app
+SIGNUP AUTH ERROR: Error Domain=FIRAuthErrorDomain Code=17999 "An internal error has occurred, print and inspect the error details for more information." UserInfo={NSUnderlyingError=0x1188be370 {Error Domain=FIRAuthInternalErrorDomain Code=3 "(null)" UserInfo={NSUnderlyingError=0x1188be880 {Error Domain=com.google.HTTPStatus Code=400 "(null)" UserInfo={data={length = 220, bytes = 0x7b0a2020 22657272 6f72223a 207b0a20 ... 5d0a2020 7d0a7d0a }, data_content_type=application/json; charset=UTF-8}}, FIRAuthErrorUserInfoDeserializedResponseKey={
+    code = 400;
+    errors =     (
+                {
+            domain = global;
+            message = "CONFIGURATION_NOT_FOUND";
+            reason = invalid;
+        }
+    );
+    message = "CONFIGURATION_NOT_FOUND";
+}}}, FIRAuthErrorUserInfoNameKey=ERROR_INTERNAL_ERROR, NSLocalizedDescription=An internal error has occurred, print and inspect the error details for more information.}
+SIGNUP CODE: 17999
+SIGNUP DOMAIN: FIRAuthErrorDomain
+SIGNUP USERINFO: ["NSUnderlyingError": Error Domain=FIRAuthInternalErrorDomain Code=3 "(null)" UserInfo={NSUnderlyingError=0x1188be880 {Error Domain=com.google.HTTPStatus Code=400 "(null)" UserInfo={data={length = 220, bytes = 0x7b0a2020 22657272 6f72223a 207b0a20 ... 5d0a2020 7d0a7d0a }, data_content_type=application/json; charset=UTF-8}}, FIRAuthErrorUserInfoDeserializedResponseKey={
+    code = 400;
+    errors =     (
+                {
+            domain = global;
+            message = "CONFIGURATION_NOT_FOUND";
+            reason = invalid;
+        }
+    );
+    message = "CONFIGURATION_NOT_FOUND";
+}}, "FIRAuthErrorUserInfoNameKey": "ERROR_INTERNAL_ERROR", "NSLocalizedDescription": "An internal error has occurred, print and inspect the error details for more information."]
+13.1.1 - [FirebaseFirestore][I-FST000001] WatchStream (313034643730633938) Stream error: 'Not found: The database (default) does not exist for project unitpusebh Please visit https://console.cloud.google.com/datastore/setup?project=unitpusebh to add a Cloud Datastore or Cloud Firestore database. '
+13.1.1 - [FirebaseFirestore][I-FST000001] WatchStream (313034643730633938) Stream error: 'Not found: The database (default) does not exist for project unitpusebh Please visit https://console.cloud.google.com/datastore/setup?project=unitpusebh to add a Cloud Datastore or Cloud Firestore database. '
+13.1.1 - [FirebaseFirestore][I-FST000001] WatchStream (313034643730633938) Stream error: 'Not found: The database (default) does not exist for project unitpusebh Please visit https://console.cloud.google.com/datastore/setup?project=unitpusebh to add a Cloud Datastore or Cloud Firestore database. '
+13.1.1 - [FirebaseFirestore][I-FST000001] WatchStream (313034643730633938) Stream error: 'Not found: The database (default) does not exist for project unitpusebh Please visit https://console.cloud.google.com/datastore/setup?project=unitpusebh to add a Cloud Datastore or Cloud Firestore database. 
