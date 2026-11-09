@@ -1,0 +1,358 @@
+import Foundation
+import Combine
+import UIKit
+import FirebaseCore
+import FirebaseAuth
+import GoogleSignIn
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    func signUp(email: String, password: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(email: String, password: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // Google sign-in
+    func signInWithGoogle(completion: @escaping (Bool) -> Void) {
+        guard let clientID = FirebaseApp.app()?.options.clientID,
+              let rootVC = UIApplication.shared.connectedScenes
+                .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
+                .first else {
+            errorMessage = "Unable to start Google sign-in."
+            completion(false)
+            return
+        }
+        
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootVC) { result, error in
+            guard let user = result?.user,
+                  let idToken = user.idToken?.tokenString else {
+                // kung cancel lang ng user, walang error message
+                if let error = error,
+                   (error as NSError).code != GIDSignInError.canceled.rawValue {
+                    self.errorMessage = error.localizedDescription
+                }
+                completion(false)
+                return
+            }
+            
+            let credential = GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: user.accessToken.tokenString
+            )
+            
+            Auth.auth().signIn(with: credential) { _, error in
+                if let error = error {
+                    self.errorMessage = error.localizedDescription
+                    completion(false)
+                } else {
+                    completion(true)
+                }
+            }
+        }
+    }
+    
+    // para sa logout button mamaya
+    func logout() {
+        GIDSignIn.sharedInstance.signOut()
+        try? Auth.auth().signOut()
+    }
+}
+
+---
+import SwiftUI
+import FirebaseCore
+import GoogleSignIn
+
+@main
+struct UnitPulseBHApp: App {
+    
+    init() {
+        FirebaseApp.configure()   // connects the app to Firebase
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)   // bumabalik galing Google
+                }
+        }
+    }
+}
+
+--
+
+import SwiftUI
+
+struct LoginView: View {
+    
+    @Binding var isLoggedIn: Bool
+    @StateObject var auth = AuthController()
+    
+    @State private var username = ""
+    @State private var password = ""
+    @State private var showPassword = false
+    @State private var showSignUp = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var body: some View {
+        ZStack {
+            
+            LinearGradient(
+                colors: [Color(white: 0.88), Color(white: 0.28)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                
+                Spacer().frame(maxHeight: 110)
+                
+                // logo, almost touching the card like in the design
+                Image("AppLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 110, height: 110)
+                    .background(Color(white: 0.2))
+                    .clipShape(Circle())
+                    .padding(.bottom, 4)
+                
+                // login card
+                VStack(alignment: .leading, spacing: 8) {
+                    
+                    Text("EMAIL OR USERNAME")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(Color(white: 0.2))
+                    
+                    HStack(spacing: 10) {
+                        Image(systemName: "envelope")
+                            .foregroundColor(.black)
+                        TextField("username@domain.com", text: $username)
+                            .font(.system(size: 12))
+                            .foregroundColor(.black)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(white: 0.87))
+                    .clipShape(Capsule())
+                    
+                    Text("PASSWORD")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(Color(white: 0.2))
+                    
+                    HStack(spacing: 10) {
+                        Image(systemName: "lock")
+                            .foregroundColor(.black)
+                        
+                        // eye button shows or hides the password
+                        if showPassword {
+                            TextField("Password", text: $password)
+                                .font(.system(size: 12))
+                                .foregroundColor(.black)
+                                .autocapitalization(.none)
+                        } else {
+                            SecureField("Password", text: $password)
+                                .font(.system(size: 12))
+                                .foregroundColor(.black)
+                        }
+                        
+                        Button {
+                            showPassword.toggle()
+                        } label: {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(white: 0.87))
+                    .clipShape(Capsule())
+                    
+                    Button("Forgot Password?") {
+                        auth.resetPassword(email: username) { success in
+                            alertMessage = success ? "Reset link sent to your email." : (auth.errorMessage ?? "Enter your email first.")
+                            showAlert = true
+                        }
+                    }
+                    .font(.system(size: 9))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    
+                    // the real login button
+                    Button {
+                        auth.login(email: username, password: password) { success in
+                            if success {
+                                withAnimation {
+                                    isLoggedIn = true
+                                }
+                            } else {
+                                alertMessage = auth.errorMessage ?? "Login failed."
+                                showAlert = true
+                            }
+                        }
+                    } label: {
+                        Text("Continue")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(Color(red: 0.12, green: 0.13, blue: 0.17))
+                            .cornerRadius(14)
+                    }
+                    .padding(.top, 4)
+                    
+                    HStack(spacing: 3) {
+                        Text("Don't have an account?")
+                            .font(.system(size: 9))
+                        
+                        Button {
+                            showSignUp = true
+                        } label: {
+                            Text("Sign Up")
+                                .font(.system(size: 9, weight: .bold))
+                                .underline()
+                        }
+                    }
+                    .foregroundColor(.black)
+                    
+                    // line with "or" in the middle
+                    HStack(spacing: 8) {
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(Color(white: 0.72))
+                        Text("or")
+                            .font(.system(size: 9))
+                            .foregroundColor(Color(white: 0.2))
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(Color(white: 0.72))
+                    }
+                    
+                    // REAL Google sign-in
+                    Button {
+                        auth.signInWithGoogle { success in
+                            if success {
+                                withAnimation {
+                                    isLoggedIn = true
+                                }
+                            } else if let message = auth.errorMessage {
+                                alertMessage = message
+                                showAlert = true
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image("GoogleLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                            Text("Continue with Google")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.black)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 46)
+                        .background(Color.white)
+                        .cornerRadius(14)
+                        .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
+                    }
+                    
+                }
+                .padding(16)
+                .background(Color(white: 0.55))
+                .cornerRadius(24)
+                .shadow(radius: 6)
+                .background(
+                    // side shapes behind the card, they do not move the card
+                    HStack {
+                        RoundedRectangle(cornerRadius: 50)
+                            .fill(Color(white: 0.6).opacity(0.6))
+                            .frame(width: 90, height: 350)
+                        
+                        Spacer()
+                        
+                        RoundedRectangle(cornerRadius: 50)
+                            .fill(Color(white: 0.6).opacity(0.6))
+                            .frame(width: 90, height: 350)
+                    }
+                    .padding(.horizontal, -108)
+                )
+                .padding(.horizontal, 58)
+                
+                Spacer()
+                
+                // UnitPULSE card at the bottom
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Image(systemName: "house.fill")
+                            .font(.system(size: 14))
+                        Spacer()
+                        Text("Boarding House")
+                            .font(.system(size: 11))
+                    }
+                    Text("UnitPULSE")
+                        .font(.system(size: 32, weight: .bold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 18)
+                .background(Color(white: 0.55))
+                .cornerRadius(30)
+                .shadow(radius: 6)
+                .padding(.horizontal, 60)
+                .padding(.bottom, 16)
+                
+            }
+        }
+        .alert("Notice", isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+            }
+        } message: {
+            Text(alertMessage)
+        }
+        .sheet(isPresented: $showSignUp) {
+            SignUpSheet(auth: auth, isPresented: $showSignUp)
+        }
+    }
+}
+
+#Preview {
+    LoginView(isLoggedIn: .constant(false))
+}
