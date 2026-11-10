@@ -399,3 +399,56 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+
+
+
+------
+
+
+import SwiftUI
+
+struct ContentView: View {
+    
+    @StateObject var tenantController = TenantController()
+    @StateObject var paymentController = PaymentController()
+    @State private var isLoggedIn = false
+    
+    var body: some View {
+        if !isLoggedIn {
+            LoginView(isLoggedIn: $isLoggedIn)
+        } else {
+            TabView {
+                
+                DashboardView(tenantController: tenantController, paymentController: paymentController)
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                        Text("Home")
+                    }
+                
+                TenantView(controller: tenantController)
+                    .tabItem {
+                        Image(systemName: "person.2.fill")
+                        Text("Tenant")
+                    }
+                
+                PaymentView(controller: paymentController, tenantController: tenantController)
+                    .tabItem {
+                        Image(systemName: "creditcard.fill")
+                        Text("Payment")
+                    }
+                
+                InboxView(tenantController: tenantController)
+                    .tabItem {
+                        Image(systemName: "envelope.fill")
+                        Text("Inbox")
+                    }
+                
+            }
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
+
