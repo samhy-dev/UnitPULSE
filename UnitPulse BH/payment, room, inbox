@@ -1,0 +1,533 @@
+//
+//  PaymentView.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import SwiftUI
+
+struct PaymentView: View {
+    
+    @ObservedObject var controller = PaymentController()
+    @ObservedObject var tenantController: TenantController
+    @State private var showRecordForm = false
+    @State private var selectedFilter = "All"
+    
+    let filters = ["All", "Pending", "Paid", "Overdue"]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            
+            VStack(alignment: .center, spacing: 8) {
+                HStack {
+                    Spacer()
+                }
+                
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Boarding House")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                    Text("UnitPULSE")
+                        .font(.system(size: 28, weight: .bold))
+                }
+                
+                HStack(spacing: 8) {
+                     Text("PAYMENTS")
+                         .font(.caption)
+                         .fontWeight(.semibold)
+                         .fixedSize()
+                     
+                     Rectangle()
+                         .frame(height: 2)
+                         .foregroundColor(.black)
+                 }
+             }
+             .padding(.horizontal)
+            
+            Button {
+                showRecordForm = true
+            } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Record Payment")
+                            .fontWeight(.semibold)
+                    }
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+            .padding(.horizontal)
+            
+            HStack {
+                ForEach(filters, id: \.self) { filter in
+                    Button {
+                        selectedFilter = filter
+                    } label: {
+                        Text(filter)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(selectedFilter == filter ? Color.black : Color(.white))
+                            .foregroundColor(selectedFilter == filter ? .white : .black)
+                            .cornerRadius(16)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            
+            ScrollView {
+                VStack(spacing: 12) {
+                    if controller.payments.isEmpty {
+                        Text("No payments recorded yet")
+                            .foregroundColor(.black)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(controller.payments) { payment in
+                            if selectedFilter == "All" || payment.status == selectedFilter {
+                                PaymentRowView(payment: payment)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .padding(.top)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray3), Color(.systemGray6), Color(.systemGray2)],
+                    startPoint: .top,
+                    endPoint: . bottom
+            )
+            )
+        .sheet(isPresented: $showRecordForm) {
+            RecordPaymentSheet(controller: controller, tenantController: tenantController, isPresented: $showRecordForm)
+        }
+    }
+}
+
+#Preview {
+    PaymentView(controller: PaymentController(), tenantController: TenantController())
+}
+
+
+//
+//  RecordPaymentSheet.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import SwiftUI
+
+struct RecordPaymentSheet: View {
+    
+    @ObservedObject var controller: PaymentController
+    @ObservedObject var tenantController: TenantController
+    @Binding var isPresented: Bool
+    
+    @State private var tenantName = ""
+    @State private var dueDate = Date()
+    @State private var mode = "GCash"
+    @State private var amount = ""
+    @State private var selectedStatus = "Paid"
+    
+    let modeOptions = ["GCash", "Cash", "Bank Transfer", "Maya"]
+    let statusOptions = ["Paid", "Pending", "Overdue"]
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Record Payment")
+                .font(.headline)
+            
+            if tenantController.tenants.isEmpty {
+                Text("No tenants yet. Add one first in the Tenant screen.")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Tenant Name")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    
+                    Menu {
+                        ForEach(tenantController.tenants) { tenant in
+                            Button(tenant.name) {
+                                tenantName = tenant.name
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(tenantName.isEmpty ? "Select Tenant" : tenantName)
+                                .foregroundColor(.black)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color(.systemGray5))
+                        .cornerRadius(8)
+                    }
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Due Date / Date Paid")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                DatePicker("", selection: $dueDate, displayedComponents: .date)
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Mode of Payment")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                Menu {
+                    ForEach(modeOptions, id: \.self) { option in
+                        Button(option) {
+                            mode = option
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text(mode)
+                            .foregroundColor(.black)
+                        Spacer()
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color(.systemGray5))
+                    .cornerRadius(8)
+                }
+            }
+            
+            TextField("Amount", text: $amount)
+                .keyboardType(.decimalPad)
+                .textFieldStyle(.roundedBorder)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Status")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                Picker("Status", selection: $selectedStatus) {
+                    ForEach(statusOptions, id: \.self) { option in
+                        Text(option).tag(option)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            
+            Button("Save") {
+                let amountValue = Double(amount) ?? 0
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                let dueDateText = formatter.string(from: dueDate)
+                
+                controller.recordPayment(tenantName: tenantName, dueDate: dueDateText, mode: mode, amount: amountValue, status: selectedStatus)
+                isPresented = false
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.black)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .disabled(tenantName.isEmpty || amount.isEmpty)
+            
+            Spacer()
+        }
+        .padding()
+        .onAppear {
+            if let firstTenant = tenantController.tenants.first {
+                tenantName = firstTenant.name
+            }
+        }
+    }
+}
+
+----
+//
+//  RoomManagementSheet.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+
+import SwiftUI
+
+struct RoomManagementSheet: View {
+    
+    @ObservedObject var controller: TenantController
+    @Binding var isPresented: Bool
+    
+    @State private var newRoomName = ""
+    @State private var showError = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Manage Rooms")
+                .font(.headline)
+            
+            HStack {
+                TextField("New room name", text: $newRoomName)
+                    .textFieldStyle(.roundedBorder)
+                
+                Button("Add") {
+                    controller.addRoom(name: newRoomName)
+                    
+                    if controller.errorMessage == nil {
+                        newRoomName = ""
+                    } else {
+                        showError = true
+                    }
+                }
+            }
+            
+            if controller.rooms.isEmpty {
+                Text("No rooms added yet")
+                    .foregroundColor(.gray)
+                    .padding(.top, 20)
+            } else {
+                List {
+                    ForEach(controller.rooms) { room in
+                        HStack {
+                            Text(room.name)
+                            Spacer()
+                            Button {
+                                controller.deleteRoom(room)
+                                if controller.errorMessage != nil {
+                                    showError = true
+                                }
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    }
+                }
+                .listStyle(.plain)
+            }
+            
+            Button("Done") {
+                isPresented = false
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.black)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
+        .padding()
+        .alert("Error", isPresented: $showError) {
+            Button("OK") {
+                controller.errorMessage = nil
+            }
+        } message: {
+            Text(controller.errorMessage ?? "")
+        }
+    }
+}
+---
+
+//
+//  InboxView.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import SwiftUI
+
+struct InboxView: View {
+    
+    @StateObject var controller = InboxController()
+    @ObservedObject var tenantController: TenantController
+    @State private var showSendForm = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            
+            VStack(alignment: .center, spacing: 8) {
+                HStack {
+                    Spacer()
+                }
+                
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Boarding House")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                    Text("UnitPULSE")
+                        .font(.system(size: 28, weight: .bold))
+                }
+                
+                HStack(spacing: 8) {
+                     Text("INBOX")
+                         .font(.caption)
+                         .fontWeight(.semibold)
+                         .fixedSize()
+                     
+                     Rectangle()
+                         .frame(height: 2)
+                         .foregroundColor(.black)
+                 }
+             }
+             .padding(.horizontal)
+            
+            Text("Recent Message Sent")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .padding(.horizontal)
+            
+            ScrollView {
+                VStack(spacing: 12) {
+                    if controller.messages.isEmpty {
+                        Text("No messages sent yet")
+                            .foregroundColor(.black)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(controller.messages) { message in
+                            MessageCardView(message: message)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            
+            Button {
+                showSendForm = true
+            } label: {
+                HStack {
+                    Image(systemName: "paperplane.fill")
+                    Text("Send Notification")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            .padding()
+        }
+        .padding(.top)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray3), Color(.systemGray6), Color(.systemGray2)],
+                    startPoint: .top,
+                    endPoint: . bottom
+            )
+            )
+        .sheet(isPresented: $showSendForm) {
+            SendNotificationSheet(controller: controller, tenantController: tenantController, isPresented: $showSendForm)
+        }
+    }
+}
+
+#Preview {
+    InboxView(tenantController: TenantController())
+}
+
+
+//
+//  SendNotificationSheet.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import SwiftUI
+
+struct SendNotificationSheet: View {
+    
+    @ObservedObject var controller: InboxController
+    @ObservedObject var tenantController: TenantController
+    @Binding var isPresented: Bool
+    
+    @State private var recipientName = ""
+    @State private var recipientEmail = ""
+    @State private var content = ""
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Send Notification")
+                .font(.headline)
+            
+            if tenantController.tenants.isEmpty {
+                Text("No tenants yet. Add one first in the Tenant screen.")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Recipient")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    
+                    Menu {
+                        ForEach(tenantController.tenants) { tenant in
+                            Button(tenant.name) {
+                                recipientName = tenant.name
+                                recipientEmail = tenant.email
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text(recipientName.isEmpty ? "Select Tenant" : recipientName)
+                                .foregroundColor(.black)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color(.systemGray5))
+                        .cornerRadius(8)
+                    }
+                    
+                    if !recipientEmail.isEmpty {
+                        Text(recipientEmail)
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            
+            TextField("Message", text: $content)
+                .textFieldStyle(.roundedBorder)
+            
+            Button("Send") {
+                controller.sendNotification(to: recipientName, content: content)
+                isPresented = false
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.black)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .disabled(recipientName.isEmpty || content.isEmpty)
+            
+            Spacer()
+        }
+        .padding()
+        .onAppear {
+            if let firstTenant = tenantController.tenants.first {
+                recipientName = firstTenant.name
+                recipientEmail = firstTenant.email
+            }
+        }
+    }
+}
+
+
+
