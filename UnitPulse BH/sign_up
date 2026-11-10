@@ -291,3 +291,355 @@ struct LoginView: View {
 #Preview {
     LoginView(isLoggedIn: .constant(false))
 }
+
+
+===================
+
+
+import SwiftUI
+
+struct SignUpSheet: View {
+    
+    @ObservedObject var auth: AuthController
+    @Binding var isPresented: Bool
+    
+    @State private var username = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var showAlert = false
+    @State private var alertTitle = "Error"
+    @State private var alertMessage = ""
+    @State private var created = false
+    
+    var isFormEmpty: Bool {
+        username.isEmpty || password.isEmpty || confirmPassword.isEmpty
+    }
+    
+    var body: some View {
+        VStack(spacing: 14) {
+            
+            Text("Create Account")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(white: 0.2))
+            
+            // username
+            VStack(alignment: .leading, spacing: 6) {
+                TextField("Username", text: $username)
+                    .font(.system(size: 14))
+                    .foregroundColor(.black)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 13)
+                    .background(Color(white: 0.96))
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+                
+                Text("3-20 characters: letters, numbers, . or _")
+                    .font(.system(size: 11))
+                    .foregroundColor(.gray)
+                    .padding(.leading, 8)
+            }
+            
+            // password
+            SecureField("Password (at least 6 characters)", text: $password)
+                .font(.system(size: 14))
+                .foregroundColor(.black)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 13)
+                .background(Color(white: 0.96))
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+            
+            // confirm password
+            SecureField("Confirm Password", text: $confirmPassword)
+                .font(.system(size: 14))
+                .foregroundColor(.black)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 13)
+                .background(Color(white: 0.96))
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+            
+            // sign up button
+            Button {
+                if username.isEmpty || password.isEmpty {
+                    alertTitle = "Error"
+                    alertMessage = "Please fill in all fields."
+                    showAlert = true
+                } else if !auth.isValidUsername(username) {
+                    alertTitle = "Error"
+                    alertMessage = "Username must be 3-20 characters: letters, numbers, . or _ only."
+                    showAlert = true
+                } else if password != confirmPassword {
+                    alertTitle = "Error"
+                    alertMessage = "Passwords do not match."
+                    showAlert = true
+                } else {
+                    auth.signUp(username: username, password: password) { success in
+                        if success {
+                            created = true
+                            alertTitle = "Success"
+                            alertMessage = "Account created! You can now log in."
+                        } else {
+                            created = false
+                            alertTitle = "Error"
+                            alertMessage = auth.errorMessage ?? "Sign up failed."
+                        }
+                        showAlert = true
+                    }
+                }
+            } label: {
+                Text("Sign Up")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color(white: 0.13))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 36)
+            .padding(.top, 6)
+            .disabled(isFormEmpty)
+            .opacity(isFormEmpty ? 0.5 : 1)
+        }
+        .padding(22)
+        .background(Color(white: 0.9))
+        .cornerRadius(28)
+        .shadow(color: .black.opacity(0.3), radius: 10, y: 8)
+        .padding(.horizontal, 24)
+        .environment(\.colorScheme, .light)
+        .alert(alertTitle, isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+                if created {
+                    auth.logout()          // para sa login screen siya dumiretso
+                    isPresented = false
+                }
+            }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+}
+
+
+==========
+
+import SwiftUI
+
+struct LoginView: View {
+    
+    @Binding var isLoggedIn: Bool
+    @StateObject var auth = AuthController()
+    
+    @State private var username = ""
+    @State private var password = ""
+    @State private var showPassword = false
+    @State private var showSignUp = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var body: some View {
+        ZStack {
+            
+            LinearGradient(
+                colors: [Color(white: 0.88), Color(white: 0.28)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                
+                Spacer().frame(maxHeight: 110)
+                
+                // logo, almost touching the card like in the design
+                Image("Image")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 110, height: 110)
+                    .background(Color(white: 0.2))
+                    .clipShape(Circle())
+                    .padding(.bottom, 4)
+                
+                // login card
+                VStack(alignment: .leading, spacing: 8) {
+                    
+                    Text("USERNAME")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(Color(white: 0.2))
+                    
+                    HStack(spacing: 10) {
+                        Image(systemName: "person")
+                            .foregroundColor(.black)
+                        TextField("Enter username", text: $username)
+                            .font(.system(size: 12))
+                            .foregroundColor(.black)
+                            .autocapitalization(.none)
+                            .autocorrectionDisabled()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(white: 0.87))
+                    .clipShape(Capsule())
+                    
+                    Text("PASSWORD")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(Color(white: 0.2))
+                    
+                    HStack(spacing: 10) {
+                        Image(systemName: "lock")
+                            .foregroundColor(.black)
+                        
+                        // eye button shows or hides the password
+                        if showPassword {
+                            TextField("Password", text: $password)
+                                .font(.system(size: 12))
+                                .foregroundColor(.black)
+                                .autocapitalization(.none)
+                        } else {
+                            SecureField("Password", text: $password)
+                                .font(.system(size: 12))
+                                .foregroundColor(.black)
+                        }
+                        
+                        Button {
+                            showPassword.toggle()
+                        } label: {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundColor(.black)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color(white: 0.87))
+                    .clipShape(Capsule())
+                    
+                    Button("Forgot Password?") {
+                        auth.resetPassword(email: username) { success in
+                            alertMessage = success ? "Reset link sent to your email." : (auth.errorMessage ?? "Enter your email first.")
+                            showAlert = true
+                        }
+                    }
+                    .font(.system(size: 9))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    
+                    // the real login button
+                    Button {
+                        if username.isEmpty || password.isEmpty {
+                            alertMessage = "Please enter your username and password."
+                            showAlert = true
+                        } else {
+                            auth.login(username: username, password: password) { success in
+                                if success {
+                                    withAnimation {
+                                        isLoggedIn = true
+                                    }
+                                } else {
+                                    alertMessage = auth.errorMessage ?? "Login failed."
+                                    showAlert = true
+                                }
+                            }
+                        }
+                    } label: {
+                        Text("Continue")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(Color(red: 0.12, green: 0.13, blue: 0.17))
+                            .cornerRadius(14)
+                    }
+                    .padding(.top, 4)
+                    
+                    HStack(spacing: 3) {
+                        Text("Don't have an account?")
+                            .font(.system(size: 9))
+                        
+                        Button {
+                            showSignUp = true
+                        } label: {
+                            Text("Sign Up")
+                                .font(.system(size: 9, weight: .bold))
+                                .underline()
+                        }
+                    }
+                    .foregroundColor(.black)
+                    
+                }
+                .padding(16)
+                .background(Color(white: 0.55))
+                .cornerRadius(24)
+                .shadow(radius: 6)
+                .background(
+                    // side shapes behind the card, they do not move the card
+                    HStack {
+                        RoundedRectangle(cornerRadius: 50)
+                            .fill(Color(white: 0.6).opacity(0.6))
+                            .frame(width: 90, height: 350)
+                        
+                        Spacer()
+                        
+                        RoundedRectangle(cornerRadius: 50)
+                            .fill(Color(white: 0.6).opacity(0.6))
+                            .frame(width: 90, height: 350)
+                    }
+                    .padding(.horizontal, -108)
+                )
+                .padding(.horizontal, 58)
+                
+                Spacer()
+                
+                // UnitPULSE card at the bottom
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Image(systemName: "house.fill")
+                            .font(.system(size: 14))
+                        Spacer()
+                        Text("Boarding House")
+                            .font(.system(size: 11))
+                    }
+                    Text("UnitPULSE")
+                        .font(.system(size: 32, weight: .bold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 18)
+                .background(Color(white: 0.55))
+                .cornerRadius(30)
+                .shadow(radius: 6)
+                .padding(.horizontal, 60)
+                .padding(.bottom, 16)
+                
+            }
+        }
+        .alert("Notice", isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+            }
+        } message: {
+            Text(alertMessage)
+        }
+        // CHANGED: .sheet -> .overlay (floating card with dim background)
+        .overlay {
+            if showSignUp {
+                ZStack {
+                    // light dark background, tap it to close
+                    Color.black.opacity(0.15)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showSignUp = false
+                        }
+                    
+                    SignUpSheet(auth: auth, isPresented: $showSignUp)
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    LoginView(isLoggedIn: .constant(false))
+}
