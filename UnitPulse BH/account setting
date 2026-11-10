@@ -1,0 +1,265 @@
+import Foundation
+import Combine
+import FirebaseAuth
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    // email of the user who is logged in right now
+    var currentEmail: String {
+        Auth.auth().currentUser?.email ?? "No email"
+    }
+    
+    func signUp(email: String, password: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(email: String, password: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // signs the user out of Firebase
+    func logout() -> Bool {
+        do {
+            try Auth.auth().signOut()
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+}
+
+----
+
+import SwiftUI
+
+struct AccountView: View {
+    
+    @Binding var isLoggedIn: Bool
+    @StateObject var auth = AuthController()
+    
+    @State private var showLogoutConfirm = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Boarding House")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                Text("UnitPULSE")
+                    .font(.system(size: 28, weight: .bold))
+            }
+            .padding(.horizontal)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Account")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.black)
+            }
+            .padding(.horizontal)
+            
+            // who is logged in
+            HStack(spacing: 14) {
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.system(size: 50))
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Owner")
+                        .fontWeight(.semibold)
+                    Text(auth.currentEmail)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(radius: 2)
+            .padding(.horizontal)
+            
+            Text("ACCOUNT SETTINGS")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .padding(.horizontal)
+            
+            // sends a reset link to the email of the owner
+            Button {
+                auth.resetPassword(email: auth.currentEmail) { success in
+                    alertMessage = success ? "A password reset link was sent to your email." : (auth.errorMessage ?? "Something went wrong.")
+                    showAlert = true
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "lock.rotation")
+                    Text("Change Password")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.white)
+                .foregroundColor(.black)
+                .cornerRadius(12)
+                .shadow(radius: 2)
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            Button {
+                showLogoutConfirm = true
+            } label: {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                    Text("Log Out")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            .padding(.horizontal)
+            .padding(.bottom)
+            
+        }
+        .padding(.top)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray3), Color(.systemGray6), Color(.systemGray)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .confirmationDialog("Are you sure you want to log out?", isPresented: $showLogoutConfirm, titleVisibility: .visible) {
+            Button("Log Out", role: .destructive) {
+                if auth.logout() {
+                    withAnimation {
+                        isLoggedIn = false
+                    }
+                } else {
+                    alertMessage = auth.errorMessage ?? "Could not log out."
+                    showAlert = true
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+        .alert("Notice", isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+            }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+}
+
+
+---
+
+import SwiftUI
+
+struct MainTabView: View {
+    
+    @Binding var isLoggedIn: Bool
+    
+    // created after login, removed after logout
+    @StateObject var tenantController = TenantController()
+    @StateObject var paymentController = PaymentController()
+    
+    var body: some View {
+        TabView {
+            
+            DashboardView(tenantController: tenantController, paymentController: paymentController)
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+            
+            TenantView(controller: tenantController)
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                    Text("Tenant")
+                }
+            
+            PaymentView(controller: paymentController, tenantController: tenantController)
+                .tabItem {
+                    Image(systemName: "creditcard.fill")
+                    Text("Payment")
+                }
+            
+            InboxView(tenantController: tenantController)
+                .tabItem {
+                    Image(systemName: "envelope.fill")
+                    Text("Inbox")
+                }
+            
+            AccountView(isLoggedIn: $isLoggedIn)
+                .tabItem {
+                    Image(systemName: "person.crop.circle")
+                    Text("Account")
+                }
+            
+        }
+    }
+}
+
+
+---
+
+
+import SwiftUI
+
+struct ContentView: View {
+    
+    @State private var isLoggedIn = false
+    
+    var body: some View {
+        if isLoggedIn {
+            MainTabView(isLoggedIn: $isLoggedIn)
+        } else {
+            LoginView(isLoggedIn: $isLoggedIn)
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
