@@ -1,0 +1,314 @@
+//
+//  TenantController.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import Combine
+import FirebaseAuth
+import FirebaseFirestore
+
+class TenantController: ObservableObject {
+    
+    @Published var tenants: [Tenant] = []
+    @Published var rooms: [Room] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    private var tenantsListener: ListenerRegistration?
+    private var roomsListener: ListenerRegistration?
+    private var authHandle: AuthStateDidChangeListenerHandle?
+    
+    init() {
+        // every time somebody logs in or out, switch to THAT user's data
+        authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            self?.startListening(uid: user?.uid)
+        }
+    }
+    
+    deinit {
+        stopListening()
+        if let handle = authHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
+    }
+    
+    // users/{uid}  ->  tenants, rooms
+    private var userRef: DocumentReference? {
+        guard let uid = Auth.auth().currentUser?.uid else { return nil }
+        return db.collection("users").document(uid)
+    }
+    
+    private func stopListening() {
+        tenantsListener?.remove()
+        roomsListener?.remove()
+        tenantsListener = nil
+        roomsListener = nil
+    }
+    
+    private func startListening(uid: String?) {
+        stopListening()
+        
+        // clear the old user's data first
+        tenants = []
+        rooms = []
+        
+        guard let uid = uid else { return }
+        let userRef = db.collection("users").document(uid)
+        
+        tenantsListener = userRef.collection("tenants").addSnapshotListener { [weak self] snapshot, error in
+            if let error = error {
+                print("TENANTS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Tenant] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Tenant.self)
+                } catch {
+                    print("TENANT DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self?.tenants = result }
+        }
+        
+        roomsListener = userRef.collection("rooms").addSnapshotListener { [weak self] snapshot, error in
+            if let error = error {
+                print("ROOMS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Room] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Room.self)
+                } catch {
+                    print("ROOM DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self?.rooms = result }
+        }
+    }
+    
+    // MARK: - Tenants
+    
+    func addTenant(name: String, email: String, room: String, rate: Double, rateType: String) {
+        guard let userRef = userRef else {
+            errorMessage = "Please log in first."
+            return
+        }
+        
+        let newTenant = Tenant(name: name, email: email, room: room, rate: rate, rateType: rateType, isActive: true, sinceDate: "Sep 2026")
+        do {
+            try userRef.collection("tenants").addDocument(from: newTenant) { error in
+                if let error = error {
+                    print("ADD TENANT ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                }
+            }
+        } catch {
+            print("ADD TENANT ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteTenant(_ tenant: Tenant) {
+        guard let userRef = userRef, let id = tenant.id else { return }
+        userRef.collection("tenants").document(id).delete { error in
+            if let error = error { print("DELETE TENANT ERROR:", error) }
+        }
+    }
+    
+    func updateTenant(_ tenant: Tenant, name: String, email: String, room: String, rate: Double, rateType: String) {
+        guard let userRef = userRef, let id = tenant.id else { return }
+        userRef.collection("tenants").document(id).updateData([
+            "name": name,
+            "email": email,
+            "room": room,
+            "rate": rate,
+            "rateType": rateType
+        ]) { error in
+            if let error = error { print("UPDATE TENANT ERROR:", error) }
+        }
+    }
+    
+    // MARK: - Rooms
+    
+    func addRoom(name: String) {
+        guard let userRef = userRef else {
+            errorMessage = "Please log in first."
+            return
+        }
+        
+        let clean = name.trimmingCharacters(in: .whitespaces)
+        
+        if clean.isEmpty {
+            errorMessage = "Room name cannot be empty."
+            return
+        }
+        
+        if rooms.contains(where: { $0.name.lowercased() == clean.lowercased() }) {
+            errorMessage = "Room already exists."
+            return
+        }
+        
+        print("ADD ROOM:", clean)
+        do {
+            try userRef.collection("rooms").addDocument(from: Room(name: clean)) { error in
+                if let error = error {
+                    print("ADD ROOM ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                } else {
+                    print("ADD ROOM SAVED")
+                }
+            }
+        } catch {
+            print("ADD ROOM ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteRoom(_ room: Room) {
+        let isInUse = tenants.contains { $0.room == room.name }
+        
+        if isInUse {
+            errorMessage = "Cannot delete this room, a tenant is still using it."
+            return
+        }
+        
+        guard let userRef = userRef, let id = room.id else { return }
+        userRef.collection("rooms").document(id).delete { error in
+            if let error = error { print("DELETE ROOM ERROR:", error) }
+        }
+    }
+}
+-------------------
+//
+//  InboxController.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import Combine
+import FirebaseAuth
+
+class InboxController: ObservableObject {
+    
+    @Published var messages: [Message] = []
+    
+    private var authHandle: AuthStateDidChangeListenerHandle?
+    
+    init() {
+        // when somebody logs in or out, start with an empty inbox
+        authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, _ in
+            self?.messages = []
+        }
+    }
+    
+    deinit {
+        if let handle = authHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
+    }
+    
+    func sendNotification(to name: String, content: String) {
+        let newMessage = Message(recipientName: name, dateSent: "September 03 2026", content: content)
+        messages.insert(newMessage, at: 0)
+    }
+}
+
+
+---------------
+//
+//  PaymentController.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import Combine
+import FirebaseAuth
+import FirebaseFirestore
+
+class PaymentController: ObservableObject {
+    
+    @Published var payments: [Payment] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    private var paymentsListener: ListenerRegistration?
+    private var authHandle: AuthStateDidChangeListenerHandle?
+    
+    init() {
+        // every time somebody logs in or out, switch to THAT user's payments
+        authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            self?.startListening(uid: user?.uid)
+        }
+    }
+    
+    deinit {
+        paymentsListener?.remove()
+        if let handle = authHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
+    }
+    
+    // users/{uid}/payments
+    private var userRef: DocumentReference? {
+        guard let uid = Auth.auth().currentUser?.uid else { return nil }
+        return db.collection("users").document(uid)
+    }
+    
+    private func startListening(uid: String?) {
+        paymentsListener?.remove()
+        paymentsListener = nil
+        
+        // clear the old user's payments first
+        payments = []
+        
+        guard let uid = uid else { return }
+        
+        paymentsListener = db.collection("users").document(uid).collection("payments")
+            .addSnapshotListener { [weak self] snapshot, error in
+                if let error = error {
+                    print("PAYMENTS LISTENER ERROR:", error)
+                    return
+                }
+                let docs = snapshot?.documents ?? []
+                let result: [Payment] = docs.compactMap { doc in
+                    do {
+                        return try doc.data(as: Payment.self)
+                    } catch {
+                        print("PAYMENT DECODE ERROR:", error)
+                        return nil
+                    }
+                }
+                DispatchQueue.main.async { self?.payments = result }
+            }
+    }
+    
+    func recordPayment(tenantName: String, dueDate: String, mode: String, amount: Double, status: String) {
+        guard let userRef = userRef else {
+            errorMessage = "Please log in first."
+            return
+        }
+        
+        let newPayment = Payment(tenantName: tenantName, dueDate: dueDate, modeOfPayment: mode, amount: amount, status: status)
+        
+        print("RECORD PAYMENT:", tenantName, amount, status)
+        do {
+            try userRef.collection("payments").addDocument(from: newPayment) { error in
+                if let error = error {
+                    print("RECORD PAYMENT ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                } else {
+                    print("RECORD PAYMENT SAVED")
+                }
+            }
+        } catch {
+            print("RECORD PAYMENT ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
