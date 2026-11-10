@@ -1,0 +1,401 @@
+import Foundation
+import Combine
+import FirebaseAuth
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    // username -> email na tatanggapin ng Firebase
+    private func toEmail(_ input: String) -> String {
+        let clean = input.trimmingCharacters(in: .whitespaces).lowercased()
+        return clean.contains("@") ? clean : "\(clean)@unitpulse.app"
+    }
+    
+    // letters, numbers, underscore, period lang. 3-20 characters
+    func isValidUsername(_ input: String) -> Bool {
+        if input.contains("@") { return true }   // totoong email, pasado
+        let pattern = "^[A-Za-z0-9._]{3,20}$"
+        return input.range(of: pattern, options: .regularExpression) != nil
+    }
+    
+    func signUp(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("SIGNUP trying email:", email)
+        
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("SIGNUP", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("LOGIN trying email:", email)
+        
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("LOGIN", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // Gumagana lang kung totoong email ang gamit ng account
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        guard email.contains("@") else {
+            errorMessage = "Password reset needs a real email address. Usernames can't receive reset links."
+            completion(false)
+            return
+        }
+        
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.logError("RESET", error)
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func logout() {
+        try? Auth.auth().signOut()
+    }
+    
+    // email of the user who is logged in right now
+    var currentEmail: String {
+        Auth.auth().currentUser?.email ?? "No email"
+    }
+    
+    // shows only the username, hides the @unitpulse.app part
+    var currentUsername: String {
+        let suffix = "@unitpulse.app"
+        if currentEmail.hasSuffix(suffix) {
+            return String(currentEmail.dropLast(suffix.count))
+        }
+        return currentEmail
+    }
+    
+    // changes the password of the user who is logged in
+    func changePassword(newPassword: String, completion: @escaping (Bool) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "No user is logged in."
+            completion(false)
+            return
+        }
+        
+        if newPassword.count < 6 {
+            errorMessage = "Password must be at least 6 characters."
+            completion(false)
+            return
+        }
+        
+        user.updatePassword(to: newPassword) { error in
+            if let error = error {
+                self.logError("CHANGEPW", error)
+                let nsError = error as NSError
+                if nsError.code == 17014 {
+                    self.errorMessage = "Please log out and log in again, then try changing your password."
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // PRINT ang buong error sa Xcode console
+    private func logError(_ label: String, _ error: Error) {
+        let nsError = error as NSError
+        print("\(label) AUTH ERROR:", error)
+        print("\(label) CODE:", nsError.code)
+        print("\(label) DOMAIN:", nsError.domain)
+        print("\(label) USERINFO:", nsError.userInfo)
+    }
+    
+    // mas madaling intindihing error messages
+    private func friendly(_ error: Error) -> String {
+        let nsError = error as NSError
+        switch nsError.code {
+        case 17007: return "That username is already taken."
+        case 17009, 17004, 17011: return "Incorrect username or password."
+        case 17026: return "Password must be at least 6 characters."
+        case 17020: return "No internet connection."
+        case 17999: return "Internal error (code 17999). Check Xcode console for details."
+        default: return error.localizedDescription
+        }
+    }
+}
+
+
+import SwiftUI
+
+struct AccountView: View {
+    
+    @Binding var isLoggedIn: Bool
+    @StateObject var auth = AuthController()
+    
+    @State private var showLogoutConfirm = false
+    @State private var showChangePassword = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Boarding House")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                Text("UnitPULSE")
+                    .font(.system(size: 28, weight: .bold))
+            }
+            .padding(.horizontal)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Account")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundColor(.black)
+            }
+            .padding(.horizontal)
+            
+            // who is logged in
+            HStack(spacing: 14) {
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.system(size: 50))
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(auth.currentUsername)
+                        .fontWeight(.semibold)
+                    Text("Boarding house owner")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(radius: 2)
+            .padding(.horizontal)
+            
+            Text("ACCOUNT SETTINGS")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .padding(.horizontal)
+            
+            Button {
+                showChangePassword = true
+            } label: {
+                HStack {
+                    Image(systemName: "lock.rotation")
+                    Text("Change Password")
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.white)
+                .foregroundColor(.black)
+                .cornerRadius(12)
+                .shadow(radius: 2)
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+            
+            Button {
+                showLogoutConfirm = true
+            } label: {
+                HStack {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                    Text("Log Out")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            .padding(.horizontal)
+            .padding(.bottom)
+            
+        }
+        .padding(.top)
+        .background(
+            LinearGradient(
+                colors: [Color(.systemGray3), Color(.systemGray6), Color(.systemGray)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .confirmationDialog("Are you sure you want to log out?", isPresented: $showLogoutConfirm, titleVisibility: .visible) {
+            Button("Log Out", role: .destructive) {
+                auth.logout()
+                withAnimation {
+                    isLoggedIn = false
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+        .sheet(isPresented: $showChangePassword) {
+            ChangePasswordSheet(auth: auth, isPresented: $showChangePassword)
+        }
+    }
+}
+
+
+---
+
+
+import SwiftUI
+
+struct ChangePasswordSheet: View {
+    
+    @ObservedObject var auth: AuthController
+    @Binding var isPresented: Bool
+    
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    @State private var isDone = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Change Password")
+                .font(.headline)
+            
+            SecureField("New Password", text: $newPassword)
+                .textFieldStyle(.roundedBorder)
+            
+            SecureField("Confirm New Password", text: $confirmPassword)
+                .textFieldStyle(.roundedBorder)
+            
+            Button("Save") {
+                if newPassword != confirmPassword {
+                    alertMessage = "Passwords do not match."
+                    showAlert = true
+                } else {
+                    auth.changePassword(newPassword: newPassword) { success in
+                        if success {
+                            alertMessage = "Your password was changed."
+                            isDone = true
+                        } else {
+                            alertMessage = auth.errorMessage ?? "Could not change password."
+                        }
+                        showAlert = true
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.black)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .disabled(newPassword.isEmpty || confirmPassword.isEmpty)
+            
+            Spacer()
+        }
+        .padding()
+        .alert("Notice", isPresented: $showAlert) {
+            Button("OK") {
+                auth.errorMessage = nil
+                // close the sheet only when the change worked
+                if isDone {
+                    isPresented = false
+                }
+            }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+}
+
+
+--
+
+
+import SwiftUI
+
+struct MainTabView: View {
+    
+    @Binding var isLoggedIn: Bool
+    
+    // created after login, removed after logout
+    @StateObject var tenantController = TenantController()
+    @StateObject var paymentController = PaymentController()
+    
+    var body: some View {
+        TabView {
+            
+            DashboardView(tenantController: tenantController, paymentController: paymentController)
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("Home")
+                }
+            
+            TenantView(controller: tenantController)
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                    Text("Tenant")
+                }
+            
+            PaymentView(controller: paymentController, tenantController: tenantController)
+                .tabItem {
+                    Image(systemName: "creditcard.fill")
+                    Text("Payment")
+                }
+            
+            InboxView(tenantController: tenantController)
+                .tabItem {
+                    Image(systemName: "envelope.fill")
+                    Text("Inbox")
+                }
+            
+            AccountView(isLoggedIn: $isLoggedIn)
+                .tabItem {
+                    Image(systemName: "person.crop.circle")
+                    Text("Account")
+                }
+            
+        }
+    }
+}
+
+---
+
+import SwiftUI
+
+struct ContentView: View {
+    
+    @State private var isLoggedIn = false
+    
+    var body: some View {
+        if isLoggedIn {
+            MainTabView(isLoggedIn: $isLoggedIn)
+        } else {
+            LoginView(isLoggedIn: $isLoggedIn)
+        }
+    }
+}
+
+#Preview {
+    ContentView()
+}
