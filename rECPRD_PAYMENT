@@ -331,3 +331,213 @@ struct PaymentView: View {
 #Preview {
     PaymentView(controller: PaymentController(), tenantController: TenantController())
 }
+
+
+=======
+
+
+//
+//  RecordPaymentSheet.swift
+//  UnitPulse BH
+//
+
+import SwiftUI
+
+struct RecordPaymentSheet: View {
+    
+    @ObservedObject var controller: PaymentController
+    @ObservedObject var tenantController: TenantController
+    @Binding var isPresented: Bool
+    
+    @State private var tenantName = ""
+    @State private var dueDate = Date()
+    @State private var mode = "GCash"
+    @State private var amount = ""
+    @State private var selectedStatus = "Paid"
+    
+    let modeOptions = ["GCash", "Cash", "Bank Transfer", "Maya"]
+    let statusOptions = ["Paid", "Pending", "Overdue"]
+    
+    var isFormInvalid: Bool {
+        tenantName.isEmpty || amount.isEmpty
+    }
+    
+    var body: some View {
+        VStack(spacing: 14) {
+            
+            Text("Record Payment")
+                .font(.system(size: 14))
+                .foregroundColor(Color(white: 0.2))
+            
+            // MARK: Tenant
+            if tenantController.tenants.isEmpty {
+                Text("No tenants yet. Add one first in the Tenant screen.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.gray)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    fieldLabel("Tenant Name")
+                    
+                    Menu {
+                        ForEach(tenantController.tenants) { tenant in
+                            Button(tenant.name) {
+                                tenantName = tenant.name
+                            }
+                        }
+                    } label: {
+                        menuLabel(tenantName.isEmpty ? "Select Tenant" : tenantName)
+                    }
+                }
+            }
+            
+            // MARK: Date
+            VStack(alignment: .leading, spacing: 6) {
+                fieldLabel("Due Date / Date Paid")
+                
+                HStack {
+                    Text(dueDate.formatted(date: .abbreviated, time: .omitted))
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(white: 0.4))
+                    Spacer()
+                    Image(systemName: "calendar")
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 13)
+                .background(Color(white: 0.96))
+                .clipShape(Capsule())
+                .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+                .overlay {
+                    // invisible DatePicker on top, tap the text to open calendar
+                    DatePicker("", selection: $dueDate, displayedComponents: .date)
+                        .labelsHidden()
+                        .colorMultiply(.clear)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 18)
+                }
+            }
+            
+            // MARK: Mode of payment
+            VStack(alignment: .leading, spacing: 6) {
+                fieldLabel("Mode of Payment")
+                
+                Menu {
+                    ForEach(modeOptions, id: \.self) { option in
+                        Button(option) {
+                            mode = option
+                        }
+                    }
+                } label: {
+                    menuLabel(mode)
+                }
+            }
+            
+            // MARK: Amount
+            VStack(alignment: .leading, spacing: 6) {
+                fieldLabel("Amount")
+                
+                TextField("Amount", text: $amount)
+                    .font(.system(size: 14))
+                    .foregroundColor(.black)
+                    .keyboardType(.decimalPad)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 13)
+                    .background(Color(white: 0.96))
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+            }
+            
+            // MARK: Status
+            VStack(alignment: .leading, spacing: 6) {
+                fieldLabel("Status")
+                
+                HStack(spacing: 8) {
+                    ForEach(statusOptions, id: \.self) { option in
+                        Button {
+                            selectedStatus = option
+                        } label: {
+                            Text(option)
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(selectedStatus == option ? Color(white: 0.13) : Color(white: 0.96))
+                                .foregroundColor(selectedStatus == option ? .white : .gray)
+                                .clipShape(Capsule())
+                                .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+                        }
+                    }
+                }
+            }
+            
+            // MARK: Save
+            Button {
+                let amountValue = Double(amount) ?? 0
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                let dueDateText = formatter.string(from: dueDate)
+                
+                controller.recordPayment(
+                    tenantName: tenantName,
+                    dueDate: dueDateText,
+                    mode: mode,
+                    amount: amountValue,
+                    status: selectedStatus
+                )
+                isPresented = false
+            } label: {
+                Text("Save")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color(white: 0.13))
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 36)
+            .padding(.top, 6)
+            .disabled(isFormInvalid)
+            .opacity(isFormInvalid ? 0.5 : 1)
+        }
+        .padding(22)
+        .background(Color(white: 0.9))
+        .cornerRadius(28)
+        .shadow(color: .black.opacity(0.3), radius: 10, y: 8)
+        .padding(.horizontal, 24)
+        .environment(\.colorScheme, .light)
+        .onAppear {
+            if let firstTenant = tenantController.tenants.first {
+                tenantName = firstTenant.name
+            }
+        }
+    }
+    
+    // MARK: - Reusable pieces
+    
+    private func fieldLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12))
+            .foregroundColor(.gray)
+            .padding(.leading, 6)
+    }
+    
+    private func menuLabel(_ text: String) -> some View {
+        HStack {
+            Text(text)
+                .font(.system(size: 14))
+                .foregroundColor(Color(white: 0.4))
+            Spacer()
+            Image(systemName: "chevron.up.chevron.down")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.gray)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 13)
+        .background(Color(white: 0.96))
+        .clipShape(Capsule())
+        .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+    }
+}
+
