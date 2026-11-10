@@ -1,0 +1,142 @@
+//
+//  SendNotificationSheet.swift
+//  UnitPulse BH
+//
+
+import SwiftUI
+
+struct SendNotificationSheet: View {
+    
+    @ObservedObject var controller: InboxController
+    @ObservedObject var tenantController: TenantController
+    @Binding var isPresented: Bool
+    
+    @State private var recipientName = ""
+    @State private var recipientEmail = ""
+    @State private var content = ""
+    
+    var isFormInvalid: Bool {
+        recipientName.isEmpty || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            
+            Text("Send Notification")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.black)
+            
+            // MARK: Recipient
+            if tenantController.tenants.isEmpty {
+                Text("No tenants yet. Add one first in the Tenant screen.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.gray)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Menu {
+                        ForEach(tenantController.tenants) { tenant in
+                            Button(tenant.name) {
+                                recipientName = tenant.name
+                                recipientEmail = tenant.email
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(recipientName.isEmpty ? "Tenant" : recipientName)
+                                .font(.system(size: 14))
+                                .foregroundColor(Color(white: 0.45))
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Color(white: 0.45))
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 13)
+                        .background(Color(white: 0.96))
+                        .clipShape(Capsule())
+                        .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+                    }
+                    
+                    if !recipientEmail.isEmpty {
+                        Text(recipientEmail)
+                            .font(.system(size: 11))
+                            .foregroundColor(.gray)
+                            .padding(.leading, 8)
+                    }
+                }
+            }
+            
+            // MARK: Message
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $content)
+                    .font(.system(size: 14))
+                    .foregroundColor(.black)
+                    .scrollContentBackground(.hidden)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                
+                if content.isEmpty {
+                    Text("Type a message")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(white: 0.55))
+                        .padding(.horizontal, 17)
+                        .padding(.vertical, 16)
+                        .allowsHitTesting(false)
+                }
+            }
+            .frame(height: 130)
+            .background(Color(white: 0.96))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: .black.opacity(0.18), radius: 3, y: 2)
+            
+            // MARK: Send
+            Button {
+                controller.sendNotification(to: recipientName, content: content)
+                isPresented = false
+            } label: {
+                Text("Send")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color(white: 0.13))
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
+            }
+            .padding(.horizontal, 36)
+            .padding(.top, 8)
+            .disabled(isFormInvalid)
+            .opacity(isFormInvalid ? 0.5 : 1)
+        }
+        .padding(22)
+        .background(Color(white: 0.9))
+        .cornerRadius(28)
+        .shadow(color: .black.opacity(0.3), radius: 10, y: 8)
+        .padding(.horizontal, 24)
+        .environment(\.colorScheme, .light)
+        .onAppear {
+            if let firstTenant = tenantController.tenants.first {
+                recipientName = firstTenant.name
+                recipientEmail = firstTenant.email
+            }
+        }
+    }
+}
+
+---
+
+
+.overlay {
+    if showSendForm {
+        ZStack {
+            Color.black.opacity(0.15)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    showSendForm = false
+                }
+
+            SendNotificationSheet(controller: controller, tenantController: tenantController, isPresented: $showSendForm)
+        }
+    }
+}
