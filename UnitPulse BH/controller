@@ -1,0 +1,435 @@
+import Foundation
+import Combine
+import FirebaseAuth
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    // username -> email na tatanggapin ng Firebase
+    private func toEmail(_ input: String) -> String {
+        let clean = input.trimmingCharacters(in: .whitespaces).lowercased()
+        return clean.contains("@") ? clean : "\(clean)@unitpulse.app"
+    }
+    
+    // letters, numbers, underscore, period lang. 3-20 characters
+    func isValidUsername(_ input: String) -> Bool {
+        if input.contains("@") { return true }   // totoong email, pasado
+        let pattern = "^[A-Za-z0-9._]{3,20}$"
+        return input.range(of: pattern, options: .regularExpression) != nil
+    }
+    
+    func signUp(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("SIGNUP trying email:", email)
+        
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("SIGNUP", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("LOGIN trying email:", email)
+        
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("LOGIN", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // Gumagana lang kung totoong email ang gamit ng account
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        guard email.contains("@") else {
+            errorMessage = "Password reset needs a real email address. Usernames can't receive reset links."
+            completion(false)
+            return
+        }
+        
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.logError("RESET", error)
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func logout() {
+        try? Auth.auth().signOut()
+    }
+    
+    // email of the user who is logged in right now
+    var currentEmail: String {
+        Auth.auth().currentUser?.email ?? "No email"
+    }
+    
+    // shows only the username, hides the @unitpulse.app part
+    var currentUsername: String {
+        let suffix = "@unitpulse.app"
+        if currentEmail.hasSuffix(suffix) {
+            return String(currentEmail.dropLast(suffix.count))
+        }
+        return currentEmail
+    }
+    
+    // changes the password of the user who is logged in
+    func changePassword(newPassword: String, completion: @escaping (Bool) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "No user is logged in."
+            completion(false)
+            return
+        }
+        
+        if newPassword.count < 6 {
+            errorMessage = "Password must be at least 6 characters."
+            completion(false)
+            return
+        }
+        
+        user.updatePassword(to: newPassword) { error in
+            if let error = error {
+                self.logError("CHANGEPW", error)
+                let nsError = error as NSError
+                if nsError.code == 17014 {
+                    self.errorMessage = "Please log out and log in again, then try changing your password."
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // PRINT ang buong error sa Xcode console
+    private func logError(_ label: String, _ error: Error) {
+        let nsError = error as NSError
+        print("\(label) AUTH ERROR:", error)
+        print("\(label) CODE:", nsError.code)
+        print("\(label) DOMAIN:", nsError.domain)
+        print("\(label) USERINFO:", nsError.userInfo)
+    }
+    
+    // mas madaling intindihing error messages
+    private func friendly(_ error: Error) -> String {
+        let nsError = error as NSError
+        switch nsError.code {
+        case 17007: return "That username is already taken."
+        case 17009, 17004, 17011: return "Incorrect username or password."
+        case 17026: return "Password must be at least 6 characters."
+        case 17020: return "No internet connection."
+        case 17999: return "Internal error (code 17999). Check Xcode console for details."
+        default: return error.localizedDescription
+        }
+    }
+}
+----
+
+  import Foundation
+import Combine
+import FirebaseAuth
+
+class AuthController: ObservableObject {
+    
+    @Published var errorMessage: String? = nil
+    
+    // username -> email na tatanggapin ng Firebase
+    private func toEmail(_ input: String) -> String {
+        let clean = input.trimmingCharacters(in: .whitespaces).lowercased()
+        return clean.contains("@") ? clean : "\(clean)@unitpulse.app"
+    }
+    
+    // letters, numbers, underscore, period lang. 3-20 characters
+    func isValidUsername(_ input: String) -> Bool {
+        if input.contains("@") { return true }   // totoong email, pasado
+        let pattern = "^[A-Za-z0-9._]{3,20}$"
+        return input.range(of: pattern, options: .regularExpression) != nil
+    }
+    
+    func signUp(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("SIGNUP trying email:", email)
+        
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("SIGNUP", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func login(username: String, password: String, completion: @escaping (Bool) -> Void) {
+        let email = toEmail(username)
+        print("LOGIN trying email:", email)
+        
+        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+            if let error = error {
+                self.logError("LOGIN", error)
+                self.errorMessage = self.friendly(error)
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // Gumagana lang kung totoong email ang gamit ng account
+    func resetPassword(email: String, completion: @escaping (Bool) -> Void) {
+        guard email.contains("@") else {
+            errorMessage = "Password reset needs a real email address. Usernames can't receive reset links."
+            completion(false)
+            return
+        }
+        
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                self.logError("RESET", error)
+                self.errorMessage = error.localizedDescription
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    func logout() {
+        try? Auth.auth().signOut()
+    }
+    
+    // email of the user who is logged in right now
+    var currentEmail: String {
+        Auth.auth().currentUser?.email ?? "No email"
+    }
+    
+    // shows only the username, hides the @unitpulse.app part
+    var currentUsername: String {
+        let suffix = "@unitpulse.app"
+        if currentEmail.hasSuffix(suffix) {
+            return String(currentEmail.dropLast(suffix.count))
+        }
+        return currentEmail
+    }
+    
+    // changes the password of the user who is logged in
+    func changePassword(newPassword: String, completion: @escaping (Bool) -> Void) {
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "No user is logged in."
+            completion(false)
+            return
+        }
+        
+        if newPassword.count < 6 {
+            errorMessage = "Password must be at least 6 characters."
+            completion(false)
+            return
+        }
+        
+        user.updatePassword(to: newPassword) { error in
+            if let error = error {
+                self.logError("CHANGEPW", error)
+                let nsError = error as NSError
+                if nsError.code == 17014 {
+                    self.errorMessage = "Please log out and log in again, then try changing your password."
+                } else {
+                    self.errorMessage = error.localizedDescription
+                }
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
+    
+    // PRINT ang buong error sa Xcode console
+    private func logError(_ label: String, _ error: Error) {
+        let nsError = error as NSError
+        print("\(label) AUTH ERROR:", error)
+        print("\(label) CODE:", nsError.code)
+        print("\(label) DOMAIN:", nsError.domain)
+        print("\(label) USERINFO:", nsError.userInfo)
+    }
+    
+    // mas madaling intindihing error messages
+    private func friendly(_ error: Error) -> String {
+        let nsError = error as NSError
+        switch nsError.code {
+        case 17007: return "That username is already taken."
+        case 17009, 17004, 17011: return "Incorrect username or password."
+        case 17026: return "Password must be at least 6 characters."
+        case 17020: return "No internet connection."
+        case 17999: return "Internal error (code 17999). Check Xcode console for details."
+        default: return error.localizedDescription
+        }
+    }
+}
+--
+
+  //
+//  TenantController.swift
+//  UnitPulse BH
+//
+
+import Foundation
+import Combine
+import FirebaseFirestore
+
+class TenantController: ObservableObject {
+    
+    @Published var tenants: [Tenant] = []
+    @Published var rooms: [Room] = []
+    @Published var errorMessage: String? = nil
+    
+    private let db = Firestore.firestore()
+    
+    init() {
+        // these listen to Firestore, so the lists update by themselves
+        db.collection("tenants").addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("TENANTS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Tenant] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Tenant.self)
+                } catch {
+                    print("TENANT DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self.tenants = result }
+        }
+        
+        db.collection("rooms").addSnapshotListener { snapshot, error in
+            if let error = error {
+                print("ROOMS LISTENER ERROR:", error)
+                return
+            }
+            let docs = snapshot?.documents ?? []
+            let result: [Room] = docs.compactMap { doc in
+                do {
+                    return try doc.data(as: Room.self)
+                } catch {
+                    print("ROOM DECODE ERROR:", error)
+                    return nil
+                }
+            }
+            DispatchQueue.main.async { self.rooms = result }
+        }
+    }
+    
+    func addTenant(name: String, email: String, room: String, rate: Double, rateType: String) {
+        let newTenant = Tenant(name: name, email: email, room: room, rate: rate, rateType: rateType, isActive: true, sinceDate: "Sep 2026")
+        do {
+            try db.collection("tenants").addDocument(from: newTenant) { error in
+                if let error = error {
+                    print("ADD TENANT ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                }
+            }
+        } catch {
+            print("ADD TENANT ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteTenant(_ tenant: Tenant) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).delete { error in
+            if let error = error { print("DELETE TENANT ERROR:", error) }
+        }
+    }
+    
+    func updateTenant(_ tenant: Tenant, name: String, email: String, room: String, rate: Double, rateType: String) {
+        guard let id = tenant.id else { return }
+        db.collection("tenants").document(id).updateData([
+            "name": name,
+            "email": email,
+            "room": room,
+            "rate": rate,
+            "rateType": rateType
+        ]) { error in
+            if let error = error { print("UPDATE TENANT ERROR:", error) }
+        }
+    }
+    
+    func addRoom(name: String) {
+        let clean = name.trimmingCharacters(in: .whitespaces)
+        
+        if clean.isEmpty {
+            errorMessage = "Room name cannot be empty."
+            return
+        }
+        
+        if rooms.contains(where: { $0.name.lowercased() == clean.lowercased() }) {
+            errorMessage = "Room already exists."
+            return
+        }
+        
+        print("ADD ROOM:", clean)
+        do {
+            try db.collection("rooms").addDocument(from: Room(name: clean)) { error in
+                if let error = error {
+                    print("ADD ROOM ERROR:", error)
+                    DispatchQueue.main.async { self.errorMessage = error.localizedDescription }
+                } else {
+                    print("ADD ROOM SAVED")
+                }
+            }
+        } catch {
+            print("ADD ROOM ENCODE ERROR:", error)
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func deleteRoom(_ room: Room) {
+        let isInUse = tenants.contains { $0.room == room.name }
+        
+        if isInUse {
+            errorMessage = "Cannot delete this room, a tenant is still using it."
+            return
+        }
+        
+        guard let id = room.id else { return }
+        db.collection("rooms").document(id).delete { error in
+            if let error = error { print("DELETE ROOM ERROR:", error) }
+        }
+    }
+}
+//
+//  InboxController.swift
+//  UnitPulse BH
+//
+//  Created by Mac-LAB on 9/8/26.
+//
+
+import Foundation
+import Combine
+
+class InboxController: ObservableObject {
+    
+    @Published var messages: [Message] = []
+    
+    func sendNotification(to name: String, content: String) {
+        let newMessage = Message(recipientName: name, dateSent: "September 03 2026", content: content)
+        messages.insert(newMessage, at: 0)
+    }
+}
